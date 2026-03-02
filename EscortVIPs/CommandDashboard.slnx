@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CommandMessaging/CommandMessaging.csproj" />
+  <Project Path="CommandDashboard/CommandDashboard.csproj" />
+  <Project Path="FieldMobileApp/FieldMobileApp.csproj" />
+  <Project Path="SimulationEngine/SimulationEngine.csproj" />
+</Solution>

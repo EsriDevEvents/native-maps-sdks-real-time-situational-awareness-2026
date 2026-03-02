@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FieldMobileApp.MainPage"
+             Title="Field App">
+       <Grid Padding="24"
+                     RowDefinitions="*,Auto">
+              <Border x:Name="EscortOverallStatusBanner"
+                      Grid.Row="0"
+                      IsVisible="False"
+                      VerticalOptions="Start"
+                      HorizontalOptions="Fill"
+                      Padding="12,8"
+                      Margin="0,0,0,12"
+                      StrokeThickness="0"
+                      BackgroundColor="#2E7D32"
+                      StrokeShape="RoundRectangle 8">
+                     <Label x:Name="EscortOverallStatusLabel"
+                            Text="Awaiting VIP telemetry"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            HorizontalTextAlignment="Center"
+                            TextColor="White"/>
+              </Border>
+
+              <VerticalStackLayout Grid.Row="0"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Fill"
+                                   Spacing="14">
+                     <Border x:Name="VipCommandBanner"
+                             IsVisible="False"
+                             HorizontalOptions="Center"
+                             StrokeThickness="1"
+                             Stroke="#FF60A5FA"
+                             Background="#CC1E3A8A"
+                             StrokeShape="RoundRectangle 12"
+                             Padding="14,8">
+                            <Label x:Name="VipCommandLabel"
+                                   Text=""
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="White"/>
+                     </Border>
+
+                     <Label x:Name="RoleStateLabel"
+                            Text="UNKNOWN"
+                            FontSize="40"
+                            FontAttributes="Bold"
+                            HorizontalOptions="Center"
+                            HorizontalTextAlignment="Center"
+                            TextColor="White"/>
+              </VerticalStackLayout>
+
+              <Grid x:Name="VipBottomPanel"
+                    Grid.Row="1"
+                    HeightRequest="44"
+                    ColumnDefinitions="*"
+                    VerticalOptions="End">
+                     <Label x:Name="DetailLabel"
+                            Text="Escort:   --.- m --"
+                            FontSize="14"
+                            FontFamily="Courier New"
+                            VerticalOptions="End"
+                            HorizontalOptions="End"
+                            HorizontalTextAlignment="End"
+                            TextColor="White"/>
+              </Grid>
+
+              <Grid x:Name="EscortBottomPanel"
+                    Grid.Row="1"
+                    HeightRequest="150"
+                    RowDefinitions="*"
+                    ColumnDefinitions="Auto,*"
+                    ColumnSpacing="16"
+                    VerticalOptions="End"
+                    IsVisible="False">
+                     <Label Text="VIPs"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            VerticalOptions="Start"
+                            HorizontalOptions="Start"
+                            TextColor="White"/>
+
+                     <CollectionView x:Name="VipStatusListView"
+                                     Grid.Column="1"
+                                     SelectionMode="None"
+                                     VerticalOptions="Fill"
+                                     HorizontalOptions="Fill">
+                            <CollectionView.ItemTemplate>
+                                   <DataTemplate>
+                                          <Border StrokeThickness="0"
+                                                  BackgroundColor="{Binding BackgroundColor}"
+                                                  StrokeShape="RoundRectangle 6"
+                                                  Padding="8,4"
+                                                  Margin="0,2">
+                                                 <Grid ColumnDefinitions="*,Auto">
+                                                        <Label Text="{Binding DeviceId}"
+                                                               FontSize="12"
+                                                               FontAttributes="Bold"
+                                                               LineBreakMode="TailTruncation"
+                                                               TextColor="White"/>
+                                                        <Label Grid.Column="1"
+                                                               Text="{Binding Status}"
+                                                               FontSize="12"
+                                                               FontAttributes="Bold"
+                                                               WidthRequest="88"
+                                                               HorizontalTextAlignment="End"
+                                                               HorizontalOptions="End"
+                                                               LineBreakMode="NoWrap"
+                                                               TextColor="White"/>
+                                                 </Grid>
+                                          </Border>
+                                   </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                     </CollectionView>
+              </Grid>
+       </Grid>
+</ContentPage>
