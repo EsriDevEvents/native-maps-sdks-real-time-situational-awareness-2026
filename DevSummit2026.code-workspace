@@ -1,12 +1,16 @@
 {
   "folders": [
     {
-      "name": "EscortVIPs",
-      "path": "EscortVIPs"
+      "name": "BasicDynamicEntity",
+      "path": "BasicDynamicEntity"
     },
     {
       "name": "BasicGeotrigger",
       "path": "BasicGeotrigger"
+    },
+    {
+      "name": "EscortVIPs",
+      "path": "EscortVIPs"
     }
   ],
   "settings": {

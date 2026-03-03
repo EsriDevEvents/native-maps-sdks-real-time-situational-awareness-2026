@@ -2,6 +2,19 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "Build BasicGeotrigger",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"BasicGeotrigger.csproj",
+				"--ignore-failed-sources",
+				"-p:Platform=x64"
+			],
+			"group": "build",
+			"problemMatcher": "$msCompile"
+		},
+		{
 			"label": "Run BasicGeotrigger",
 			"type": "shell",
 			"command": "dotnet",
@@ -13,6 +26,20 @@
 			],
 			"isBackground": false,
 			"group": "build"
+		},
+		{
+			"label": "Run BasicGeotrigger (No Build)",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"run",
+				"--project",
+				"BasicGeotrigger.csproj",
+				"--no-build",
+				"-p:Platform=x64"
+			],
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }
