@@ -1,0 +1,23 @@
+﻿<Window
+    x:Class="BasicGeotrigger.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BasicGeotrigger"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:esri="using:Esri.ArcGISRuntime.UI.Controls"
+    xmlns:toolkit="using:Esri.ArcGISRuntime.Toolkit.UI.Controls"
+    mc:Ignorable="d"
+    Title="Geotriggers">
+
+    <Grid>
+        <esri:MapView x:Name="_mapView" />
+
+        <Border x:Name="_popupPanel" HorizontalAlignment="Right" VerticalAlignment="Top" Width="400" Margin="24"
+                Background="White" BorderBrush="Black" BorderThickness="1" Padding="4" CornerRadius="10"
+                Visibility="Collapsed">
+            <toolkit:PopupViewer x:Name="_popupViewer" />
+        </Border>
+    </Grid>
+
+</Window>
