@@ -33,7 +33,7 @@ internal sealed class SimulationEngineHost
     private const double EscortCentroidLeadControlGain = 0.04;
     private const double VipBaseRouteSpeedMetersPerSecond = 1.0;
     private const double VipSpeedSpreadMetersPerSecond = 0.2;
-    private const double VipInitialSpacingMeters = 18.0;
+    private const double VipInitialSpacingMeters = 6.0;
     private const double VipWanderMaxOffsetMeters = 2.4;
     private const double VipWanderResponsePerSecond = 0.65;
     private const double VipWanderRetargetMinSeconds = 3.2;
@@ -375,13 +375,16 @@ internal sealed class SimulationEngineHost
                 var distanceMeters = CalculateDistanceMeters(vipPoint, escortPoint);
                 current.DistanceMeters = distanceMeters;
                 current.DirectionToEscort = ComputeDirectionCardinal(current.Latitude, current.Longitude, escortLatitude, escortLongitude);
+                var effectiveStatus = string.IsNullOrWhiteSpace(current.Status)
+                    ? "Unknown"
+                    : current.Status;
 
                 var assignedPayload = new AssignedLocationPayload(
                     DeviceId: vipDeviceId,
                     Role: "VIP",
                     Latitude: current.Latitude,
                     Longitude: current.Longitude,
-                    Status: "Unknown",
+                    Status: effectiveStatus,
                     DistanceMeters: current.DistanceMeters,
                     DirectionToEscort: current.DirectionToEscort);
 
