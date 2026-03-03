@@ -893,8 +893,7 @@ internal sealed class SimulationEngineHost
         if (!string.IsNullOrWhiteSpace(fromEnvironment))
             return fromEnvironment;
 
-        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        return Path.Combine(userProfile, "Documents", "ArcGIS", "Projects", "MyProject5", "CampusRoute.geodatabase");
+        return Path.Combine(AppContext.BaseDirectory, "campus-routes.geodatabase");
     }
 
     private sealed class VipState

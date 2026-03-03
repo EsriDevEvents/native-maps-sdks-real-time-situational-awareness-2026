@@ -25,7 +25,7 @@
     {
       "label": "Run Dashboard",
       "type": "shell",
-      "command": "dotnet run --project ./CommandDashboard/CommandDashboard.csproj --no-build",
+      "command": "if (-not $env:ARCGIS_API_KEY) { $env:ARCGIS_API_KEY = [Environment]::GetEnvironmentVariable('ARCGIS_API_KEY','User') }; if (-not $env:ARCGIS_API_KEY) { throw 'ARCGIS_API_KEY is not set. Set it in your user environment.' }; dotnet run --project ./CommandDashboard/CommandDashboard.csproj --no-build",
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {

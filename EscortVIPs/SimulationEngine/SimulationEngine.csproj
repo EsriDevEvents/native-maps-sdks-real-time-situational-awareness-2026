@@ -13,4 +13,11 @@
   <ItemGroup>
     <ProjectReference Include="..\CommandMessaging\CommandMessaging.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\campus-routes.geodatabase"
+          Link="campus-routes.geodatabase"
+          CopyToOutputDirectory="PreserveNewest"
+          Condition="Exists('Resources\campus-routes.geodatabase')" />
+  </ItemGroup>
 </Project>

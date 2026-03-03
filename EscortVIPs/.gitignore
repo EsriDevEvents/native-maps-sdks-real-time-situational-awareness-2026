@@ -21,4 +21,7 @@ obj/
 *.keystore
 
 *.nupkg
+
+*.log
+logs/
 packages/

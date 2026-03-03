@@ -13,8 +13,6 @@ namespace CommandDashboard.Services.Messaging;
 
 public sealed class FieldMessagingHost : IAsyncDisposable
 {
-    private const string RouteLayerName = "CampusRoute";
-    private const string RouteGeodatabasePath = @"C:\Users\greg5999\Documents\ArcGIS\Projects\MyProject5\CampusRoute.geodatabase";
     private const double EscortSafetyRadiusMeters = 25.0;
     private const double EscortRouteSpeedMetersPerSecond = 1.35;
     private const double EscortMinRouteSpeedMetersPerSecond = 0.0;
@@ -26,23 +24,20 @@ public sealed class FieldMessagingHost : IAsyncDisposable
     private const double VipSpeedSpreadMetersPerSecond = 0.2;
     private const double VipInitialSpacingMeters = 18.0;
     private const double RouteDensifySegmentMeters = 2.0;
-    private const int SimulationTickMilliseconds = 1000;
     private readonly HttpListener listener = new();
     private readonly ConcurrentDictionary<string, WebSocket> clients = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> sendGates = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, string> clientRoles = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, VipState> vipStateByDevice = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, VipSpeedDirective> vipSpeedDirectiveByDevice = new(StringComparer.OrdinalIgnoreCase);
-    private readonly SemaphoreSlim publishGate = new(1, 1);
     private readonly string sessionId;
     private readonly CancellationTokenSource shutdownCts = new();
     private Task? acceptLoopTask;
-    private Polyline? escortRoute;
+    private Polyline? escortRoute = null;
     private List<Polyline> routePolylines = [];
     private List<ExcursionRouteWindow> excursionRouteWindows = [];
     private double escortRouteDistanceMeters;
-    private double escortRouteLengthMeters;
-    private DateTimeOffset? lastEscortRouteStepUtc;
+    private double escortRouteLengthMeters = 0;
 
     public FieldMessagingHost(string sessionId, string endpointPrefix = "http://127.0.0.1:8765/ws/")
     {
@@ -297,153 +292,6 @@ public sealed class FieldMessagingHost : IAsyncDisposable
         OnConnectionStateChanged();
     }
 
-    private async Task RunSimulationLoopAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    await PublishVipSnapshotAsync(cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch
-                {
-                }
-
-                await Task.Delay(SimulationTickMilliseconds, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-        }
-    }
-
-    private async Task PublishVipSnapshotAsync(CancellationToken cancellationToken)
-    {
-        if (escortRoute is null)
-            return;
-
-        await publishGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            var vipDeviceIds = GetClientDeviceIdsByRole("VIP")
-                .OrderBy(deviceId => deviceId, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            var nowUtc = DateTimeOffset.UtcNow;
-            var deltaSeconds = lastEscortRouteStepUtc.HasValue
-                ? Math.Clamp((nowUtc - lastEscortRouteStepUtc.Value).TotalSeconds, 0.25, 2.0)
-                : 1.0;
-            lastEscortRouteStepUtc = nowUtc;
-
-            for (var vipIndex = 0; vipIndex < vipDeviceIds.Count; vipIndex++)
-            {
-                var vipDeviceId = vipDeviceIds[vipIndex];
-                var current = vipStateByDevice.GetOrAdd(vipDeviceId, _ => new VipState());
-                var mainRouteLengthMeters = Math.Max(escortRouteLengthMeters, 1);
-                var startingDistanceMeters = current.RouteDistanceMeters
-                    ?? NormalizeDistance(vipIndex * VipInitialSpacingMeters, mainRouteLengthMeters);
-                var vipSpeedMetersPerSecond = ComputeVipRouteSpeedMetersPerSecond(vipIndex);
-                var vipDirective = vipSpeedDirectiveByDevice.GetValueOrDefault(vipDeviceId, VipSpeedDirective.Normal);
-                vipSpeedMetersPerSecond = ApplyVipSpeedDirective(vipSpeedMetersPerSecond, vipDirective);
-                var updatedDistanceMeters = NormalizeDistance(
-                    startingDistanceMeters + vipSpeedMetersPerSecond * deltaSeconds,
-                    mainRouteLengthMeters);
-
-                var vipPoint = PointAlongPolylineGeodetic(escortRoute, updatedDistanceMeters);
-                var activeExcursion = TryGetActiveExcursionWindow(
-                    updatedDistanceMeters,
-                    mainRouteLengthMeters,
-                    vipDeviceId,
-                    vipDeviceIds);
-                if (activeExcursion is not null)
-                {
-                    var excursionMainOffsetMeters = ForwardDistanceAlongRoute(
-                        activeExcursion.MainStartDistanceMeters,
-                        updatedDistanceMeters,
-                        mainRouteLengthMeters);
-                    var excursionProgress = activeExcursion.MainWindowLengthMeters <= 0
-                        ? 0
-                        : Math.Clamp(excursionMainOffsetMeters / activeExcursion.MainWindowLengthMeters, 0, 1);
-                    var excursionDistanceMeters = excursionProgress * activeExcursion.ExcursionLengthMeters;
-                    vipPoint = PointAlongPolylineGeodetic(activeExcursion.ExcursionRoute, excursionDistanceMeters);
-                }
-
-                current.RouteDistanceMeters = updatedDistanceMeters;
-                current.Latitude = vipPoint.Y;
-                current.Longitude = vipPoint.X;
-            }
-
-            if (!TryGetEscortPosition(deltaSeconds, out var escortLatitude, out var escortLongitude))
-                return;
-
-            await PublishEscortSnapshotAsync(escortLatitude, escortLongitude, cancellationToken).ConfigureAwait(false);
-
-            for (var vipIndex = 0; vipIndex < vipDeviceIds.Count; vipIndex++)
-            {
-                var vipDeviceId = vipDeviceIds[vipIndex];
-                if (!vipStateByDevice.TryGetValue(vipDeviceId, out var current))
-                    continue;
-
-                var vipPoint = new MapPoint(current.Longitude, current.Latitude, SpatialReferences.Wgs84);
-                var escortPoint = new MapPoint(escortLongitude, escortLatitude, SpatialReferences.Wgs84);
-                var distanceMeters = CalculateDistanceMeters(vipPoint, escortPoint);
-                current.DistanceMeters = distanceMeters;
-
-                var directive = vipSpeedDirectiveByDevice.GetValueOrDefault(vipDeviceId, VipSpeedDirective.Normal);
-                if (directive != VipSpeedDirective.Normal && IsTransitionToIn(current.PreviousStatus, current.Status))
-                {
-                    await SendVipControlSignalAsync(
-                        vipDeviceId,
-                        VipSpeedDirective.Normal,
-                        "RESUME",
-                        "Escort reached. Resume normal speed.",
-                        cancellationToken).ConfigureAwait(false);
-                }
-
-                current.DirectionToEscort = ComputeDirectionCardinal(
-                    current.Latitude,
-                    current.Longitude,
-                    escortLatitude,
-                    escortLongitude);
-
-                var telemetryPayload = new VipTelemetryPayload(
-                    vipDeviceId,
-                    current.Latitude,
-                    current.Longitude,
-                    current.Status,
-                    current.DistanceMeters,
-                    current.DirectionToEscort);
-
-                var relayEnvelope = MessageSerializer.CreateEnvelope(
-                    MessageTypes.VipTelemetry,
-                    sessionId,
-                    vipDeviceId,
-                    telemetryPayload);
-
-                await BroadcastToRolesAsync(["Escort", "VIP"], relayEnvelope, cancellationToken).ConfigureAwait(false);
-
-                var assignedPayload = new AssignedLocationPayload(
-                    vipDeviceId,
-                    "VIP",
-                    current.Latitude,
-                    current.Longitude,
-                    current.Status,
-                    current.DistanceMeters,
-                    current.DirectionToEscort);
-                await SendAssignedLocationAsync(vipDeviceId, assignedPayload, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        finally
-        {
-            publishGate.Release();
-        }
-    }
-
     private async Task RelayIfNeededAsync(FieldMessageEnvelope envelope, CancellationToken cancellationToken)
     {
         if (!clientRoles.TryGetValue(envelope.DeviceId, out var role))
@@ -512,20 +360,6 @@ public sealed class FieldMessagingHost : IAsyncDisposable
             var relayEnvelope = MessageSerializer.CreateEnvelope(MessageTypes.VipTelemetry, sessionId, envelope.DeviceId, telemetryPayload);
             await BroadcastToRoleAsync("Escort", relayEnvelope, cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    private Task<bool> SendAssignedLocationForVipAsync(string deviceId, VipState state, CancellationToken cancellationToken)
-    {
-        var payload = new AssignedLocationPayload(
-            deviceId,
-            "VIP",
-            state.Latitude,
-            state.Longitude,
-            state.Status,
-            state.DistanceMeters,
-            state.DirectionToEscort);
-
-        return SendAssignedLocationAsync(deviceId, payload, cancellationToken);
     }
 
     private async Task BroadcastToRoleAsync(string role, FieldMessageEnvelope envelope, CancellationToken cancellationToken)
@@ -741,41 +575,6 @@ public sealed class FieldMessagingHost : IAsyncDisposable
                 "-");
 
             await SendAssignedLocationAsync(escortDeviceId, escortAssignedPayload, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private async Task InitializeEscortRouteAsync()
-    {
-        try
-        {
-            if (!File.Exists(RouteGeodatabasePath))
-                throw new InvalidOperationException($"Simulation route geodatabase not found at '{RouteGeodatabasePath}'.");
-
-            var routes = await LoadRoutePolylinesAsync(RouteGeodatabasePath, RouteLayerName).ConfigureAwait(false);
-            routePolylines = routes.Where(route => CalculatePolylineLengthMeters(route) > 10).ToList();
-            escortRoute = routePolylines.FirstOrDefault();
-            escortRouteDistanceMeters = 0;
-            escortRouteLengthMeters = escortRoute is null ? 0 : CalculatePolylineLengthMeters(escortRoute);
-            excursionRouteWindows = escortRoute is null
-                ? []
-                : BuildExcursionRouteWindows(escortRoute, escortRouteLengthMeters, routePolylines.Skip(1).ToList());
-            lastEscortRouteStepUtc = null;
-
-            Trace.WriteLine($"[FieldMessagingHost] Route source: {RouteGeodatabasePath}; layer hint: {RouteLayerName}; routes loaded: {routes.Count}; excursions mapped: {excursionRouteWindows.Count}");
-            if (escortRoute is null)
-            {
-                throw new InvalidOperationException(
-                    $"Route geodatabase was found at '{RouteGeodatabasePath}', but no usable polylines were loaded (layer hint: {RouteLayerName}).");
-            }
-        }
-        catch (Exception ex)
-        {
-            escortRoute = null;
-            routePolylines = [];
-            excursionRouteWindows = [];
-            escortRouteLengthMeters = 0;
-            Trace.WriteLine($"[FieldMessagingHost] Route initialization failed: {ex.Message}");
-            throw;
         }
     }
 
