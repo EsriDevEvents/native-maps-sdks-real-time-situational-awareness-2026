@@ -1,10 +1,12 @@
 {
   "folders": [
     {
-      "path": "."
+      "name": "EscortVIPs",
+      "path": "EscortVIPs"
     },
     {
-      "path": "../Doc"
+      "name": "BasicGeotrigger",
+      "path": "BasicGeotrigger"
     }
   ],
   "settings": {

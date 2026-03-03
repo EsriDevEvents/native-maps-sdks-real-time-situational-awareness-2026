@@ -8,18 +8,6 @@
 			"args": [
 				"run",
 				"--project",
-				"BasicGeotrigger.csproj"
-			],
-			"isBackground": true,
-			"group": "build"
-		},
-		{
-			"label": "Run BasicGeotrigger (GUI)",
-			"type": "shell",
-			"command": "dotnet",
-			"args": [
-				"run",
-				"--project",
 				"BasicGeotrigger.csproj",
 				"-p:Platform=x64"
 			],

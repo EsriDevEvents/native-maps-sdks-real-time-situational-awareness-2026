@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <RestoreSources>https://api.nuget.org/v3/index.json</RestoreSources>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
     <RootNamespace>BasicGeotrigger</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
