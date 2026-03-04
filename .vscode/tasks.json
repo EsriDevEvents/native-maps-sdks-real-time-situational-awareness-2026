@@ -146,6 +146,24 @@
       "command": "dotnet run --project ./EscortVIPs/FieldMobileApp/FieldMobileApp.csproj -f net10.0-windows10.0.19041.0 --no-build -- --role VIP --mode simulated --device Turing --session DEVSUMMIT-2026 --host ws://127.0.0.1:8765/ws/ --sim-host ws://127.0.0.1:8775/ws/ --autoconnect --exit-on-disconnect",
       "isBackground": true,
       "problemMatcher": []
+    },
+    {
+      "label": "Stop EscortVIPs Demo Stack",
+      "type": "shell",
+      "command": "pkill -f 'EscortVIPs/(SimulationEngine|CommandDashboard|FieldMobileApp)' || true",
+      "problemMatcher": [],
+      "windows": {
+        "options": {
+          "shell": {
+            "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "args": [
+              "-NoProfile",
+              "-Command"
+            ]
+          }
+        },
+        "command": "$ErrorActionPreference = 'SilentlyContinue'; taskkill /IM SimulationEngine.exe /F | Out-Null; taskkill /IM CommandDashboard.exe /F | Out-Null; taskkill /IM FieldMobileApp.exe /F | Out-Null; Get-CimInstance Win32_Process -Filter \"name = 'dotnet.exe'\" | Where-Object { $_.CommandLine -like '*EscortVIPs*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; exit 0"
+      }
     }
   ]
 }

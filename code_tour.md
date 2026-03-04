@@ -17,15 +17,14 @@ This document provides quick links to Geotrigger and DynamicEntity-related imple
 - Runtime initialization and authentication setup: [OnStartup](BasicDynamicEntity/App.xaml.cs#L9)
 
 ## EscortVIPs — Field app snippets
-- Custom simulated location source class: [SimulationLocationDataSource](EscortVIPs/FieldMobileApp/Location/SimulationLocationDataSource.cs#L7)
-- Location data source startup (system/simulated switching): [StartLocationDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.xaml.cs#L632)
-- Geotrigger monitor setup for VIP perimeter checks: [EnsureVipGeotriggerMonitorAsync](EscortVIPs/FieldMobileApp/MainPage.xaml.cs#L739)
-- Outer/inner fence geotriggers from location feed: [FenceGeotrigger creation](EscortVIPs/FieldMobileApp/MainPage.xaml.cs#L757)
-- Geotrigger notifications to status transitions: [HandleVipFenceNotificationAsync](EscortVIPs/FieldMobileApp/MainPage.xaml.cs#L802)
-- Assign target location in simulation mode: [SetAssignedLocation](EscortVIPs/FieldMobileApp/Location/SimulationLocationDataSource.cs#L81)
-- Custom DynamicEntity source for escort/VIP telemetry: [EscortVipDynamicEntityDataSource](EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L8)
-- Wire custom DynamicEntity source into field app: [EnsureEscortVipDynamicEntityDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.xaml.cs#L1347)
-- Publish incoming VIP telemetry to dynamic entities: [PublishVipTelemetry](EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L37)
+- Simulated location source implementation: [SimulationLocationDataSource](EscortVIPs/FieldMobileApp/Location/SimulationLocationDataSource.cs#L7)
+- Start location source for device role/mode: [StartLocationDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.Location.cs#L13)
+- Build escort perimeter geotrigger monitors: [EnsurePerimeterMonitorsAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L26)
+- Create per-ring geotrigger from location feed + fence parameters: [CreateFenceMonitor](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L153)
+- Handle ring notifications and convert to VIP status transitions: [HandleRingNotificationAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L74)
+- Dynamic entity source for escort/VIP telemetry: [EscortVipDynamicEntityDataSource](EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L8)
+- Wire field app to dynamic entity feed: [EnsureEscortVipDynamicEntityDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.StatusAndDynamics.cs#L99)
+- Publish VIP telemetry updates into dynamic entities: [PublishVipTelemetry](EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L37)
 
 ## EscortVIPs — Dashboard snippets
 - Custom DynamicEntity data source class: [MockDynamicEntityDataSource](EscortVIPs/CommandDashboard/RealTime/MockDynamicEntityDataSource.cs#L8)
