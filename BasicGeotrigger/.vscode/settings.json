@@ -1,22 +1,24 @@
 {
+  "editor.renderValidationDecorations": "off",
+  "problems.decorations.enabled": false,
   "editor.semanticTokenColorCustomizations": {
     "enabled": true,
     "rules": {
       "type": {
         "foreground": "#FFD700",
-        "fontStyle": "bold underline"
+        "fontStyle": "bold"
       },
       "type.defaultLibrary": {
         "foreground": "#FFD700",
-        "fontStyle": "bold underline"
+        "fontStyle": "bold"
       },
       "class": {
         "foreground": "#FFD700",
-        "fontStyle": "bold underline"
+        "fontStyle": "bold"
       },
       "class.defaultLibrary": {
         "foreground": "#FFD700",
-        "fontStyle": "bold underline"
+        "fontStyle": "bold"
       }
     }
   },
@@ -32,7 +34,7 @@
         ],
         "settings": {
           "foreground": "#FFD700",
-          "fontStyle": "bold underline"
+          "fontStyle": "bold"
         }
       }
     ]

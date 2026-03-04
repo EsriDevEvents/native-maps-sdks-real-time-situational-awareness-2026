@@ -2,10 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Esri.ArcGISRuntime;
 using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Geotriggers;
 using Esri.ArcGISRuntime.Mapping;
+using Esri.ArcGISRuntime.Mapping.Popups;
+using Esri.ArcGISRuntime.Toolkit.UI.Controls;
+using Esri.ArcGISRuntime.UI.Controls;
 using Microsoft.UI.Xaml;
 using Windows.UI.Popups;
 using ClickSource;
@@ -22,11 +26,28 @@ public sealed partial class MainWindow : Window
         xMax: -12971963.953236824, yMax: 4005786.6339308205,
         0d, 0d, spatialReference: SpatialReferences.WebMercator);
     private GeotriggerMonitor? _monitor;
+    private MapView MapView { get; set; } = default!;
+    private PopupViewer PopupViewer { get; set; } = default!;
+    private FrameworkElement PopupPanel { get; set; } = default!;
 
     public MainWindow()
     {
         InitializeComponent();
+        InitializeViewReferences();
         _ = InitializeAsync();
+    }
+
+    private void InitializeViewReferences()
+    {
+        if (Content is not FrameworkElement root)
+            throw new InvalidOperationException("Window content is not initialized.");
+
+        MapView = root.FindName("_mapView") as Esri.ArcGISRuntime.UI.Controls.MapView
+            ?? throw new InvalidOperationException("Could not find '_mapView'.");
+        PopupViewer = root.FindName("_popupViewer") as Esri.ArcGISRuntime.Toolkit.UI.Controls.PopupViewer
+            ?? throw new InvalidOperationException("Could not find '_popupViewer'.");
+        PopupPanel = root.FindName("_popupPanel") as FrameworkElement
+            ?? throw new InvalidOperationException("Could not find '_popupPanel'.");
     }
 
     private async Task InitializeAsync()
@@ -53,25 +74,22 @@ public sealed partial class MainWindow : Window
         CreateAndInitializeGeotrigger(fenceTable);
 
         // show the map
-        _mapView.Map = map;
+        MapView.Map = map;
     }
 
     private void CreateAndInitializeGeotrigger(FeatureTable fenceTable)
     {
-        // create a custom location data source to emit location updates on map clicks
-        var clickSource = ClickLocationDataSource.Create(_mapView);
+        // Feed / Fence / Rule - Geotrigger setup
 
-        // create a geotrigger feed based on the click location data source
+        // create a geotrigger feed based on our custom click location data source
+        var clickSource = ClickLocationDataSource.Create(MapView);
         var feed = new LocationGeotriggerFeed(clickSource);
 
         // create fence parameters with a buffer distance of 30 meters around the fence point feature
         var fenceParameters = new FeatureFenceParameters(fenceTable, bufferDistance: 30d);
 
         // Arcade expression - evaluated when geotrigger notification is generated
-        var messageExpression = new Esri.ArcGISRuntime.ArcadeExpression(
-            "{\n" +
-            "  'message': `${$fencefeature['TEXT_FOR_DESCRIPTION']}`,\n" +
-            "}");
+        var messageExpression = new ArcadeExpression("$FenceFeature['TEXT_FOR_DESCRIPTION']");
 
         // create the geotrigger
         var geotrigger = new FenceGeotrigger(
@@ -79,7 +97,7 @@ public sealed partial class MainWindow : Window
             FenceRuleType.EnterOrExit,
             fenceParameters,
             messageExpression,
-            "Palm Springs locales")
+            geotriggerName: "Palm Springs locales")
         {
             FeedAccuracyMode = FenceGeotriggerFeedAccuracyMode.UseGeometry,
             EnterExitSpatialRelationship = FenceEnterExitSpatialRelationship.EnterContainsAndExitDoesNotIntersect,
@@ -100,15 +118,15 @@ public sealed partial class MainWindow : Window
             // get the fence feature and layer associated with the notification
             var fence = info.FenceGeoElement as ArcGISFeature;
             var layer = fence?.FeatureTable?.Layer as FeatureLayer;
-            if (layer is null)
+            if (fence is null || layer is null)
                 return;
 
             // on enter: show the popup and select the fence feature
             if (info.FenceNotificationType is FenceNotificationType.Entered)
             {
                 // show the popup
-                _popupViewer.Popup = new Esri.ArcGISRuntime.Mapping.Popups.Popup(fence, layer.PopupDefinition);
-                _popupPanel.Visibility = Visibility.Visible;
+                PopupViewer.Popup = new Popup(fence, layer.PopupDefinition);
+                PopupPanel.Visibility = Visibility.Visible;
 
                 // select the fence
                 layer.SelectFeature(fence);
@@ -116,16 +134,19 @@ public sealed partial class MainWindow : Window
             else // on exit: hide the popup, unselect the fence, and show a farewell dialog
             {
                 // hide the popup
-                _popupPanel.Visibility = Visibility.Collapsed;
-                _popupViewer.Popup = null;
+                PopupPanel.Visibility = Visibility.Collapsed;
+                PopupViewer.Popup = null;
 
                 // unselect the fence
                 layer.UnselectFeature(fence);
 
                 // show a farewell dialog
+                var fenceName = fence.Attributes.TryGetValue("Name", out var nameValue)
+                    ? nameValue?.ToString() ?? "this location"
+                    : "this location";
                 var dialog = new MessageDialog(info.Message)
                 {
-                    Title = $"Thanks for stopping by {(string)info.FenceGeoElement.Attributes["Name"]!}"
+                    Title = $"Thanks for stopping by {fenceName}"
                 };
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
                 WinRT.Interop.InitializeWithWindow.Initialize(dialog, hwnd);
