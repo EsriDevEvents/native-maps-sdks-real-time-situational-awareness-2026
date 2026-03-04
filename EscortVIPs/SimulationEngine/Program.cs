@@ -33,7 +33,7 @@ internal sealed class SimulationEngineHost
     private const double EscortCentroidLeadControlGain = 0.04;
     private const double VipBaseRouteSpeedMetersPerSecond = 1.0;
     private const double VipSpeedSpreadMetersPerSecond = 0.2;
-    private const double VipInitialSpacingMeters = 6.0;
+    private const double VipInitialSpacingMeters = 2.0;
     private const double VipWanderMaxOffsetMeters = 2.4;
     private const double VipWanderResponsePerSecond = 0.65;
     private const double VipWanderRetargetMinSeconds = 3.2;
@@ -299,13 +299,16 @@ internal sealed class SimulationEngineHost
                 : TickMilliseconds / 1000.0;
             lastEscortRouteStepUtc = nowUtc;
 
+            var vipCenterIndex = (vipDeviceIds.Count - 1) / 2.0;
+
             for (var vipIndex = 0; vipIndex < vipDeviceIds.Count; vipIndex++)
             {
                 var vipDeviceId = vipDeviceIds[vipIndex];
                 var current = vipStateByDevice.GetOrAdd(vipDeviceId, _ => new VipState());
                 var mainRouteLengthMeters = Math.Max(escortRouteLengthMeters, 1);
+                var initialOffsetFromEscortMeters = (vipIndex - vipCenterIndex) * VipInitialSpacingMeters;
                 var startingDistanceMeters = current.RouteDistanceMeters
-                    ?? NormalizeDistance(vipIndex * VipInitialSpacingMeters, mainRouteLengthMeters);
+                    ?? NormalizeDistance(escortRouteDistanceMeters + initialOffsetFromEscortMeters, mainRouteLengthMeters);
                 var vipSpeedMetersPerSecond = ComputeVipRouteSpeedMetersPerSecond(vipIndex);
                 var vipDirective = vipSpeedDirectiveByDevice.GetValueOrDefault(vipDeviceId, VipSpeedDirective.Normal);
                 vipSpeedMetersPerSecond = ApplyVipSpeedDirective(vipSpeedMetersPerSecond, vipDirective);
