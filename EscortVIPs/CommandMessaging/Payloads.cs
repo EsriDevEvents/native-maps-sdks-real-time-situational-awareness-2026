@@ -7,29 +7,29 @@ public sealed record LocationUpdatePayload(double Latitude, double Longitude, do
 public sealed record StatusUpdatePayload(string Status);
 
 public sealed record AssignedLocationPayload(
-	string DeviceId,
-	string Role,
-	double Latitude,
-	double Longitude,
-	string Status,
-	double? DistanceMeters,
-	string? DirectionToEscort);
+    string DeviceId,
+    string Role,
+    double Latitude,
+    double Longitude,
+    string Status,
+    double? DistanceMeters,
+    string? DirectionToEscort);
 
 public sealed record EscortPositionPayload(double Latitude, double Longitude);
 
 public sealed record VipTelemetryPayload(
-	string DeviceId,
-	double Latitude,
-	double Longitude,
-	string Status,
-	double? DistanceMeters,
-	string? DirectionToEscort);
+    string DeviceId,
+    double Latitude,
+    double Longitude,
+    string Status,
+    double? DistanceMeters,
+    string? DirectionToEscort);
 
 public sealed record VipControlPayload(
-	string DeviceId,
-	string Signal,
-	string Message,
-	bool IsActive = true);
+    string DeviceId,
+    string Signal,
+    string Message,
+    bool IsActive = true);
 
 public sealed record RoutePointPayload(double Latitude, double Longitude);
 

@@ -15,7 +15,7 @@ public class ClickLocationDataSource : LocationDataSource
 {
     private readonly MapView _mapView;
     private readonly SimpleMarkerSymbol _vertexSymbol = new(SimpleMarkerSymbolStyle.Circle, Color.Red, 2d);
-    
+
     public GeometryEditor GeometryEditor { get; } = new();
 
     public double HorizontalAccuracy

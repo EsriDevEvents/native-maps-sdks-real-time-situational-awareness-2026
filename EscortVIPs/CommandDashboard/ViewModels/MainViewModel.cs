@@ -389,182 +389,182 @@ public partial class MainViewModel : ObservableObject
         switch (envelope.Type)
         {
             case MessageTypes.RouteSnapshot:
-            {
-                var payload = MessageSerializer.DeserializePayload<RouteSnapshotPayload>(envelope);
-                if (payload is null)
+                {
+                    var payload = MessageSerializer.DeserializePayload<RouteSnapshotPayload>(envelope);
+                    if (payload is null)
+                        break;
+
+                    var points = payload.Points
+                        .Where(point => !double.IsNaN(point.Latitude) && !double.IsNaN(point.Longitude))
+                        .Select(point => new MapPoint(point.Longitude, point.Latitude, SpatialReferences.Wgs84))
+                        .ToList();
+
+                    mainRoutePoints = points;
                     break;
-
-                var points = payload.Points
-                    .Where(point => !double.IsNaN(point.Latitude) && !double.IsNaN(point.Longitude))
-                    .Select(point => new MapPoint(point.Longitude, point.Latitude, SpatialReferences.Wgs84))
-                    .ToList();
-
-                mainRoutePoints = points;
-                break;
-            }
+                }
             case MessageTypes.Register:
-            {
-                var payload = MessageSerializer.DeserializePayload<RegisterPayload>(envelope);
-                if (payload is null)
-                    break;
-
-                if (string.IsNullOrWhiteSpace(envelope.DeviceId))
-                    break;
-
-                if (!IsFieldAppClient(payload))
-                    break;
-
-                registeredFieldAppDeviceIds.Add(envelope.DeviceId);
-
-                if (!TryParseRole(payload.Role, out var role))
                 {
-                    role = UnitRole.Vip;
-                }
+                    var payload = MessageSerializer.DeserializePayload<RegisterPayload>(envelope);
+                    if (payload is null)
+                        break;
 
-                if (role == UnitRole.Escort)
-                {
-                    escortDeviceId = envelope.DeviceId;
-                    EscortUnit.DisplayName = envelope.DeviceId;
-                    EscortUnit.Status = UnitStatus.In;
-                }
-                else if (VipUnits.All(x => !string.Equals(x.DisplayName, envelope.DeviceId, StringComparison.OrdinalIgnoreCase)))
-                {
-                    var unit = new FieldUnitStatus(envelope.DeviceId, UnitRole.Vip)
+                    if (string.IsNullOrWhiteSpace(envelope.DeviceId))
+                        break;
+
+                    if (!IsFieldAppClient(payload))
+                        break;
+
+                    registeredFieldAppDeviceIds.Add(envelope.DeviceId);
+
+                    if (!TryParseRole(payload.Role, out var role))
                     {
-                        Status = UnitStatus.In,
-                        DirectionToEscort = "-",
-                        Latitude = EscortUnit.Latitude,
-                        Longitude = EscortUnit.Longitude
-                    };
-                    unit.PropertyChanged += UnitOnPropertyChanged;
-                    VipUnits.Add(unit);
-                }
-                else
-                {
-                    var existing = ResolveUnit(envelope.DeviceId);
-                    existing.Status = UnitStatus.In;
-                }
+                        role = UnitRole.Vip;
+                    }
 
-                break;
-            }
+                    if (role == UnitRole.Escort)
+                    {
+                        escortDeviceId = envelope.DeviceId;
+                        EscortUnit.DisplayName = envelope.DeviceId;
+                        EscortUnit.Status = UnitStatus.In;
+                    }
+                    else if (VipUnits.All(x => !string.Equals(x.DisplayName, envelope.DeviceId, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var unit = new FieldUnitStatus(envelope.DeviceId, UnitRole.Vip)
+                        {
+                            Status = UnitStatus.In,
+                            DirectionToEscort = "-",
+                            Latitude = EscortUnit.Latitude,
+                            Longitude = EscortUnit.Longitude
+                        };
+                        unit.PropertyChanged += UnitOnPropertyChanged;
+                        VipUnits.Add(unit);
+                    }
+                    else
+                    {
+                        var existing = ResolveUnit(envelope.DeviceId);
+                        existing.Status = UnitStatus.In;
+                    }
+
+                    break;
+                }
             case MessageTypes.LocationUpdate:
-            {
-                if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
-                    break;
-
-                if (IsEscortDevice(envelope.DeviceId))
-                    break;
-
-                EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Vip);
-                if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
-                    break;
-
-                var payload = MessageSerializer.DeserializePayload<LocationUpdatePayload>(envelope);
-                if (payload is null)
-                    break;
-
-                var unit = ResolveUnit(envelope.DeviceId);
-                unit.Latitude = payload.Latitude;
-                unit.Longitude = payload.Longitude;
-
-                if (payload.DistanceMeters.HasValue)
                 {
-                    unit.DistanceMeters = payload.DistanceMeters.Value;
-                }
+                    if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
+                        break;
 
-                if (!string.IsNullOrWhiteSpace(payload.DirectionToEscort))
-                {
-                    unit.DirectionToEscort = payload.DirectionToEscort;
-                }
+                    if (IsEscortDevice(envelope.DeviceId))
+                        break;
 
-                break;
-            }
+                    EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Vip);
+                    if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
+                        break;
+
+                    var payload = MessageSerializer.DeserializePayload<LocationUpdatePayload>(envelope);
+                    if (payload is null)
+                        break;
+
+                    var unit = ResolveUnit(envelope.DeviceId);
+                    unit.Latitude = payload.Latitude;
+                    unit.Longitude = payload.Longitude;
+
+                    if (payload.DistanceMeters.HasValue)
+                    {
+                        unit.DistanceMeters = payload.DistanceMeters.Value;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(payload.DirectionToEscort))
+                    {
+                        unit.DirectionToEscort = payload.DirectionToEscort;
+                    }
+
+                    break;
+                }
             case MessageTypes.EscortPosition:
-            {
-                if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
-                    break;
-
-                EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Escort);
-                if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
-                    break;
-
-                if (string.IsNullOrWhiteSpace(escortDeviceId)
-                    || !string.Equals(envelope.DeviceId, escortDeviceId, StringComparison.OrdinalIgnoreCase))
                 {
-                    escortDeviceId = envelope.DeviceId;
-                    EscortUnit.DisplayName = envelope.DeviceId;
-                }
+                    if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
+                        break;
 
-                var payload = MessageSerializer.DeserializePayload<EscortPositionPayload>(envelope);
-                if (payload is null)
+                    EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Escort);
+                    if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
+                        break;
+
+                    if (string.IsNullOrWhiteSpace(escortDeviceId)
+                        || !string.Equals(envelope.DeviceId, escortDeviceId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        escortDeviceId = envelope.DeviceId;
+                        EscortUnit.DisplayName = envelope.DeviceId;
+                    }
+
+                    var payload = MessageSerializer.DeserializePayload<EscortPositionPayload>(envelope);
+                    if (payload is null)
+                        break;
+
+                    EscortUnit.Latitude = payload.Latitude;
+                    EscortUnit.Longitude = payload.Longitude;
+                    HasEscortPosition = true;
                     break;
-
-                EscortUnit.Latitude = payload.Latitude;
-                EscortUnit.Longitude = payload.Longitude;
-                HasEscortPosition = true;
-                break;
-            }
+                }
             case MessageTypes.StatusUpdate:
-            {
-                if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
-                    break;
-
-                if (IsEscortDevice(envelope.DeviceId))
-                    break;
-
-                EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Vip);
-                if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
-                    break;
-
-                var payload = MessageSerializer.DeserializePayload<StatusUpdatePayload>(envelope);
-                if (payload is null)
-                    break;
-
-                var unit = ResolveUnit(envelope.DeviceId);
-                if (Enum.TryParse<UnitStatus>(payload.Status, ignoreCase: true, out var status))
                 {
-                    unit.Status = status;
-                }
+                    if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
+                        break;
 
-                break;
-            }
+                    if (IsEscortDevice(envelope.DeviceId))
+                        break;
+
+                    EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Vip);
+                    if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
+                        break;
+
+                    var payload = MessageSerializer.DeserializePayload<StatusUpdatePayload>(envelope);
+                    if (payload is null)
+                        break;
+
+                    var unit = ResolveUnit(envelope.DeviceId);
+                    if (Enum.TryParse<UnitStatus>(payload.Status, ignoreCase: true, out var status))
+                    {
+                        unit.Status = status;
+                    }
+
+                    break;
+                }
             case MessageTypes.VipTelemetry:
-            {
-                if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
-                    break;
-
-                if (IsEscortDevice(envelope.DeviceId))
-                    break;
-
-                EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Vip);
-                if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
-                    break;
-
-                var payload = MessageSerializer.DeserializePayload<VipTelemetryPayload>(envelope);
-                if (payload is null)
-                    break;
-
-                var unit = ResolveUnit(envelope.DeviceId);
-                unit.Latitude = payload.Latitude;
-                unit.Longitude = payload.Longitude;
-
-                if (Enum.TryParse<UnitStatus>(payload.Status, ignoreCase: true, out var telemetryStatus))
                 {
-                    unit.Status = telemetryStatus;
-                }
+                    if (string.IsNullOrWhiteSpace(envelope.DeviceId) || IsSimulatorDeviceId(envelope.DeviceId))
+                        break;
 
-                if (payload.DistanceMeters.HasValue)
-                {
-                    unit.DistanceMeters = payload.DistanceMeters.Value;
-                }
+                    if (IsEscortDevice(envelope.DeviceId))
+                        break;
 
-                if (!string.IsNullOrWhiteSpace(payload.DirectionToEscort))
-                {
-                    unit.DirectionToEscort = payload.DirectionToEscort;
-                }
+                    EnsureFieldDeviceRegistered(envelope.DeviceId, UnitRole.Vip);
+                    if (!registeredFieldAppDeviceIds.Contains(envelope.DeviceId))
+                        break;
 
-                break;
-            }
+                    var payload = MessageSerializer.DeserializePayload<VipTelemetryPayload>(envelope);
+                    if (payload is null)
+                        break;
+
+                    var unit = ResolveUnit(envelope.DeviceId);
+                    unit.Latitude = payload.Latitude;
+                    unit.Longitude = payload.Longitude;
+
+                    if (Enum.TryParse<UnitStatus>(payload.Status, ignoreCase: true, out var telemetryStatus))
+                    {
+                        unit.Status = telemetryStatus;
+                    }
+
+                    if (payload.DistanceMeters.HasValue)
+                    {
+                        unit.DistanceMeters = payload.DistanceMeters.Value;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(payload.DirectionToEscort))
+                    {
+                        unit.DirectionToEscort = payload.DirectionToEscort;
+                    }
+
+                    break;
+                }
         }
 
         RecalculateAggregateState();

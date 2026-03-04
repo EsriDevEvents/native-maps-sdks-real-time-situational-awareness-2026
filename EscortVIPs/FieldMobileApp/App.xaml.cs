@@ -5,23 +5,23 @@ namespace FieldMobileApp;
 
 public partial class App : Application
 {
-	public App()
-	{
-		var apiKey = Environment.GetEnvironmentVariable("ARCGIS_API_KEY", EnvironmentVariableTarget.Process)
-					 ?? Environment.GetEnvironmentVariable("ARCGIS_API_KEY", EnvironmentVariableTarget.User)
-					 ?? Environment.GetEnvironmentVariable("ARCGIS_API_KEY", EnvironmentVariableTarget.Machine);
+    public App()
+    {
+        var apiKey = Environment.GetEnvironmentVariable("ARCGIS_API_KEY", EnvironmentVariableTarget.Process)
+                     ?? Environment.GetEnvironmentVariable("ARCGIS_API_KEY", EnvironmentVariableTarget.User)
+                     ?? Environment.GetEnvironmentVariable("ARCGIS_API_KEY", EnvironmentVariableTarget.Machine);
 
-		if (!string.IsNullOrWhiteSpace(apiKey))
-		{
-			ArcGISRuntimeEnvironment.ApiKey = apiKey;
-		}
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            ArcGISRuntimeEnvironment.ApiKey = apiKey;
+        }
 
-		InitializeComponent();
-	}
+        InitializeComponent();
+    }
 
-	protected override Window CreateWindow(IActivationState? activationState)
-	{
-		var window = new Window(new AppShell());
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        var window = new Window(new AppShell());
 
 #if WINDOWS
 		window.Width = 320;
@@ -30,6 +30,6 @@ public partial class App : Application
 		window.MinimumHeight = 320;
 #endif
 
-		return window;
-	}
+        return window;
+    }
 }

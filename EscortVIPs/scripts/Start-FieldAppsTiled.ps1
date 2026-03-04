@@ -87,7 +87,7 @@ function Wait-ForMainWindowHandle {
 function Resolve-FieldAppExecutablePath {
     $searchRoot = Join-Path $Root "FieldMobileApp\\bin"
     if (-not (Test-Path -Path $searchRoot)) {
-        throw "FieldMobileApp build output not found. Run 'dotnet build ./CommandDashboard.slnx --ignore-failed-sources' first."
+        throw "FieldMobileApp build output not found. Run 'dotnet build ../DevSummit2026.Demos.slnx --ignore-failed-sources' first."
     }
 
     $candidates = @(Get-ChildItem -Path $searchRoot -Recurse -Filter "FieldMobileApp.exe" -File -ErrorAction SilentlyContinue |

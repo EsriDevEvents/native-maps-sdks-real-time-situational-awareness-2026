@@ -4,6 +4,13 @@ namespace FieldMobileApp.Location;
 
 internal static class RuntimeGeoMath
 {
+    public static double CalculateDistanceMeters(double latitude1, double longitude1, double latitude2, double longitude2)
+    {
+        var fromPoint = new MapPoint(longitude1, latitude1, SpatialReferences.Wgs84);
+        var toPoint = new MapPoint(longitude2, latitude2, SpatialReferences.Wgs84);
+        return CalculateDistanceMeters(fromPoint, toPoint);
+    }
+
     public static double CalculateDistanceMeters(MapPoint fromPoint, MapPoint toPoint)
     {
         try
@@ -46,6 +53,17 @@ internal static class RuntimeGeoMath
         {
             return 0.0;
         }
+    }
+
+    public static string ComputeDirectionCardinal(double fromLatitude, double fromLongitude, double toLatitude, double toLongitude)
+    {
+        var fromPoint = new MapPoint(fromLongitude, fromLatitude, SpatialReferences.Wgs84);
+        var toPoint = new MapPoint(toLongitude, toLatitude, SpatialReferences.Wgs84);
+        var bearing = ComputeBearingDegrees(fromPoint, toPoint);
+
+        var cardinals = new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+        var index = (int)Math.Round(bearing / 45.0, MidpointRounding.AwayFromZero) % 8;
+        return cardinals[index];
     }
 
     public static MapPoint MovePointGeodetic(MapPoint startPoint, double distanceMeters, double bearingDegrees)
