@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/EscortVIPs/">
+    <Project Path="EscortVIPs/CommandDashboard/CommandDashboard.csproj" />
+    <Project Path="EscortVIPs/CommandMessaging/CommandMessaging.csproj" />
+    <Project Path="EscortVIPs/FieldMobileApp/FieldMobileApp.csproj" />
+    <Project Path="EscortVIPs/SimulationEngine/SimulationEngine.csproj" />
+  </Folder>
+  <Project Path="BasicDynamicEntity/BasicDynamicEntity.csproj" />
+  <Project Path="BasicGeotrigger/BasicGeotrigger.csproj" />
+</Solution>

@@ -1,5 +1,44 @@
 {
+  "editor.semanticTokenColorCustomizations": {
+    "enabled": true,
+    "rules": {
+      "type": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold underline"
+      },
+      "type.defaultLibrary": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold underline"
+      },
+      "class": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold underline"
+      },
+      "class.defaultLibrary": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold underline"
+      }
+    }
+  },
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "name": "C# declaration types",
+        "scope": [
+          "entity.name.type.class.csharp",
+          "entity.name.type.csharp",
+          "support.type.csharp",
+          "storage.type.cs"
+        ],
+        "settings": {
+          "foreground": "#FFD700",
+          "fontStyle": "bold underline"
+        }
+      }
+    ]
+  },
   "[csharp]": {
-    "editor.lineNumbers": "off"
+    "editor.lineNumbers": "off",
+    "editor.semanticHighlighting.enabled": true
   }
 }

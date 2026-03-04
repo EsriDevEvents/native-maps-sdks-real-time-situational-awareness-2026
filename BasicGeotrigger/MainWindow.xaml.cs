@@ -9,7 +9,6 @@ using Esri.ArcGISRuntime.Mapping;
 using Microsoft.UI.Xaml;
 using Windows.UI.Popups;
 using ClickSource;
-using System.Data.SqlTypes;
 
 namespace BasicGeotrigger;
 
@@ -43,37 +42,38 @@ public sealed partial class MainWindow : Window
         if (map.Item is not null)
             Title = map.Item.Title;
 
-        // start monitoring geotriggers using one of the two implementation paths
-        var geotrigger = CreateAndInitializeGeotrigger(map);
-        if (geotrigger is not null)
-        {
-            // start monitoring
-            _monitor = new GeotriggerMonitor(geotrigger);
-            _monitor.Notification += Geotrigger_Notification;
-            _ = _monitor.StartAsync();
-        }
+        // retrieve the feature table from the fence layer in the web map
+        var fenceLayer = map.OperationalLayers.OfType<FeatureLayer>()
+            .FirstOrDefault(layer => layer.Id == _fenceLayerId)
+            ?? map.OperationalLayers.OfType<FeatureLayer>().FirstOrDefault();
+        if (fenceLayer?.FeatureTable is not FeatureTable fenceTable)
+            return;
+
+        // create the geotrigger and start monitoring
+        CreateAndInitializeGeotrigger(fenceTable);
 
         // show the map
         _mapView.Map = map;
     }
 
-    private Geotrigger? CreateAndInitializeGeotrigger(Map map)
+    private void CreateAndInitializeGeotrigger(FeatureTable fenceTable)
     {
-        var featureLayer = map.OperationalLayers.OfType<FeatureLayer>()
-            .FirstOrDefault(layer => layer.Id == _fenceLayerId)
-            ?? map.OperationalLayers.OfType<FeatureLayer>().FirstOrDefault();
-        if (featureLayer?.FeatureTable is not FeatureTable featureTable)
-            return null;
-
+        // create a custom location data source to emit location updates on map clicks
         var clickSource = ClickLocationDataSource.Create(_mapView);
-        var feed = new LocationGeotriggerFeed(clickSource);
-        var fenceParameters = new FeatureFenceParameters(featureTable, bufferDistance: 30d);
 
+        // create a geotrigger feed based on the click location data source
+        var feed = new LocationGeotriggerFeed(clickSource);
+
+        // create fence parameters with a buffer distance of 30 meters around the fence point feature
+        var fenceParameters = new FeatureFenceParameters(fenceTable, bufferDistance: 30d);
+
+        // Arcade expression - evaluated when geotrigger notification is generated
         var messageExpression = new Esri.ArcGISRuntime.ArcadeExpression(
             "{\n" +
             "  'message': `${$fencefeature['TEXT_FOR_DESCRIPTION']}`,\n" +
             "}");
 
+        // create the geotrigger
         var geotrigger = new FenceGeotrigger(
             feed,
             FenceRuleType.EnterOrExit,
@@ -85,7 +85,10 @@ public sealed partial class MainWindow : Window
             EnterExitSpatialRelationship = FenceEnterExitSpatialRelationship.EnterContainsAndExitDoesNotIntersect,
         };
 
-        return geotrigger;
+        // start monitoring
+        _monitor = new GeotriggerMonitor(geotrigger);
+        _monitor.Notification += Geotrigger_Notification;
+        _ = _monitor.StartAsync();
     }
 
     private void Geotrigger_Notification(object? sender, GeotriggerNotificationInfo e)
@@ -99,7 +102,7 @@ public sealed partial class MainWindow : Window
             var layer = fence?.FeatureTable?.Layer as FeatureLayer;
             if (layer is null)
                 return;
-                
+
             // on enter: show the popup and select the fence feature
             if (info.FenceNotificationType is FenceNotificationType.Entered)
             {
