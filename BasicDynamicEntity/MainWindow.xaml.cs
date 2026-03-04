@@ -87,25 +87,32 @@ namespace Simple
 
         private void ToggleAlternateRenderer_Click(object sender, RoutedEventArgs e)
         {
-            if (DynamicEntityLayer is null)
-                return;
-
-            if (_useAltRenderer.IsChecked == true)
+            try
             {
-                if (_defaultRenderer is null)
+                if (DynamicEntityLayer is null)
+                    return;
+
+                if (_useAltRenderer.IsChecked == true)
                 {
-                    _defaultRenderer = DynamicEntityLayer.Renderer;
-                    _defaultPreviousRenderer = DynamicEntityLayer.TrackDisplayProperties.PreviousObservationRenderer;
-                    _defaultTrackRenderer = DynamicEntityLayer.TrackDisplayProperties.TrackLineRenderer;
-                }
+                    if (_defaultRenderer is null)
+                    {
+                        _defaultRenderer = DynamicEntityLayer.Renderer;
+                        _defaultPreviousRenderer = DynamicEntityLayer.TrackDisplayProperties.PreviousObservationRenderer;
+                        _defaultTrackRenderer = DynamicEntityLayer.TrackDisplayProperties.TrackLineRenderer;
+                    }
 
-                UseAlternateRenderers(DynamicEntityLayer);
+                    UseAlternateRenderers(DynamicEntityLayer);
+                }
+                else
+                {
+                    DynamicEntityLayer.Renderer = _defaultRenderer;
+                    DynamicEntityLayer.TrackDisplayProperties.PreviousObservationRenderer = _defaultPreviousRenderer;
+                    DynamicEntityLayer.TrackDisplayProperties.TrackLineRenderer = _defaultTrackRenderer;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                DynamicEntityLayer.Renderer = _defaultRenderer;
-                DynamicEntityLayer.TrackDisplayProperties.PreviousObservationRenderer = _defaultPreviousRenderer;
-                DynamicEntityLayer.TrackDisplayProperties.TrackLineRenderer = _defaultTrackRenderer;
+                MessageBox.Show(ex.Message, "Alternate renderer error");
             }
         }
 
@@ -166,15 +173,24 @@ namespace Simple
         {
             // update renderer for the latest observation
             dynamicEntityLayer.Renderer =
-                Renderer.FromJson(File.ReadAllText(@"Content\sandy_uvr.json"));
+                Renderer.FromJson(File.ReadAllText(GetContentFilePath("sandy_uvr.json")));
 
             // update renderer for previous observations
             dynamicEntityLayer.TrackDisplayProperties.PreviousObservationRenderer =
-                Renderer.FromJson(File.ReadAllText(@"Content\sandy_uvr_prev.json"));
+                Renderer.FromJson(File.ReadAllText(GetContentFilePath("sandy_uvr_prev.json")));
 
             // update renderer for the track line
             dynamicEntityLayer.TrackDisplayProperties.TrackLineRenderer =
                 new SimpleRenderer(new SimpleLineSymbol(SimpleLineSymbolStyle.Dash, Color.Blue, 1d));
+        }
+
+        private static string GetContentFilePath(string fileName)
+        {
+            var contentPath = Path.Combine(AppContext.BaseDirectory, "Content", fileName);
+            if (!File.Exists(contentPath))
+                throw new FileNotFoundException($"Could not find renderer file: {contentPath}");
+
+            return contentPath;
         }
 
         private static void ShowLabels(DynamicEntityLayer dynamicEntityLayer)
