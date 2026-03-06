@@ -903,15 +903,15 @@ internal sealed class SimulationEngineHost
 
     private static string ResolveRouteGeodatabasePath()
     {
+        var packagedPath = Path.Combine(AppContext.BaseDirectory, "campus-routes.geodatabase");
+        if (File.Exists(packagedPath))
+            return packagedPath;
+
         var fromEnvironment = Environment.GetEnvironmentVariable("SIM_ROUTE_GDB_PATH");
-        if (!string.IsNullOrWhiteSpace(fromEnvironment))
+        if (!string.IsNullOrWhiteSpace(fromEnvironment) && File.Exists(fromEnvironment))
             return fromEnvironment;
 
-        const string preferredRoutePath = @"C:\Users\greg5999\Documents\ArcGIS\Projects\MyProject5\CampusRoute.geodatabase";
-        if (File.Exists(preferredRoutePath))
-            return preferredRoutePath;
-
-        return Path.Combine(AppContext.BaseDirectory, "campus-routes.geodatabase");
+        return packagedPath;
     }
 
     private sealed class VipState
