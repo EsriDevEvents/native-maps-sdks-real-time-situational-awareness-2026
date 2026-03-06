@@ -32,8 +32,9 @@ internal sealed class SimulationEngineHost
     private const double EscortCentroidControlGain = 0.045;
     private const double EscortCentroidLeadControlGain = 0.04;
     private const double VipBaseRouteSpeedMetersPerSecond = 1.0;
-    private const double VipSpeedSpreadMetersPerSecond = 0.2;
+    private const double VipSpeedSpreadMetersPerSecond = 0.12;
     private const double VipInitialSpacingMeters = 2.0;
+    private const double VipMaxEscortRouteGapMeters = 22.0;
     private const double VipWanderMaxOffsetMeters = 2.4;
     private const double VipWanderResponsePerSecond = 0.65;
     private const double VipWanderRetargetMinSeconds = 3.2;
@@ -313,12 +314,19 @@ internal sealed class SimulationEngineHost
                 var vipDirective = vipSpeedDirectiveByDevice.GetValueOrDefault(vipDeviceId, VipSpeedDirective.Normal);
                 vipSpeedMetersPerSecond = ApplyVipSpeedDirective(vipSpeedMetersPerSecond, vipDirective);
                 var updatedDistanceMeters = NormalizeDistance(startingDistanceMeters + vipSpeedMetersPerSecond * deltaSeconds, mainRouteLengthMeters);
+                var activeExcursion = TryGetActiveExcursionWindow(updatedDistanceMeters, mainRouteLengthMeters, vipDeviceId, vipDeviceIds);
+
+                if (activeExcursion is null)
+                {
+                    var escortLeadLagMeters = ComputeEscortLeadMeters(escortRouteDistanceMeters, updatedDistanceMeters, mainRouteLengthMeters);
+                    var clampedEscortLeadLagMeters = Math.Clamp(escortLeadLagMeters, -VipMaxEscortRouteGapMeters, VipMaxEscortRouteGapMeters);
+                    updatedDistanceMeters = NormalizeDistance(escortRouteDistanceMeters - clampedEscortLeadLagMeters, mainRouteLengthMeters);
+                }
 
                 var vipPoint = PointAlongPolylineGeodetic(escortRoute, updatedDistanceMeters);
                 var activeRoute = escortRoute;
                 var activeRouteDistanceMeters = updatedDistanceMeters;
                 var activeRouteLengthMeters = mainRouteLengthMeters;
-                var activeExcursion = TryGetActiveExcursionWindow(updatedDistanceMeters, mainRouteLengthMeters, vipDeviceId, vipDeviceIds);
                 if (activeExcursion is not null)
                 {
                     var excursionMainOffsetMeters = ForwardDistanceAlongRoute(
@@ -898,6 +906,10 @@ internal sealed class SimulationEngineHost
         var fromEnvironment = Environment.GetEnvironmentVariable("SIM_ROUTE_GDB_PATH");
         if (!string.IsNullOrWhiteSpace(fromEnvironment))
             return fromEnvironment;
+
+        const string preferredRoutePath = @"C:\Users\greg5999\Documents\ArcGIS\Projects\MyProject5\CampusRoute.geodatabase";
+        if (File.Exists(preferredRoutePath))
+            return preferredRoutePath;
 
         return Path.Combine(AppContext.BaseDirectory, "campus-routes.geodatabase");
     }

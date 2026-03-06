@@ -133,9 +133,10 @@ $vip01 = Start-FieldApp -ExecutablePath $fieldAppExePath -Role "VIP" -Device "Ei
 $vip02 = Start-FieldApp -ExecutablePath $fieldAppExePath -Role "VIP" -Device "Curie"
 $vip03 = Start-FieldApp -ExecutablePath $fieldAppExePath -Role "VIP" -Device "Newton"
 $vip04 = Start-FieldApp -ExecutablePath $fieldAppExePath -Role "VIP" -Device "Tesla"
-$vip05 = Start-FieldApp -ExecutablePath $fieldAppExePath -Role "VIP" -Device "Hopper"
+$vip05 = Start-FieldApp -ExecutablePath $fieldAppExePath -Role "VIP" -Device "Turing"
+$vip06 = Start-FieldApp -ExecutablePath $fieldAppExePath -Role "VIP" -Device "Hopper"
 
-$ordered = @($escort, $vip01, $vip02, $vip03, $vip04, $vip05)
+$ordered = @($escort, $vip01, $vip02, $vip03, $vip04, $vip05, $vip06)
 $handles = @(foreach ($process in $ordered) {
     Wait-ForMainWindowHandle -Process $process -TimeoutSeconds 45
 })
@@ -152,17 +153,34 @@ if ($windowCount -eq 0) {
 }
 
 $rows = 2
-$cols = [Math]::Ceiling($windowCount / [double]$rows)
-$baseWidth = [Math]::Floor($workArea.Width / $cols)
-$baseHeight = [Math]::Floor($workArea.Height / $rows)
+$vipCols = 3
+$escortColumnWidth = [Math]::Floor($workArea.Width * 0.24)
+$vipAreaWidth = $workArea.Width - $escortColumnWidth
+$vipTileWidth = [Math]::Floor($vipAreaWidth / $vipCols)
+$vipTileHeight = [Math]::Floor($workArea.Height / $rows)
 
-$positions = @()
+$positions = @(
+    @{ X = $workArea.X; Y = $workArea.Y; W = $escortColumnWidth; H = $workArea.Height }
+)
+
 for ($row = 0; $row -lt $rows; $row++) {
-    for ($col = 0; $col -lt $cols; $col++) {
-        $x = $workArea.X + ($col * $baseWidth)
-        $y = $workArea.Y + ($row * $baseHeight)
-        $w = if ($col -eq $cols - 1) { $workArea.Width - ($col * $baseWidth) } else { $baseWidth }
-        $h = if ($row -eq $rows - 1) { $workArea.Height - ($row * $baseHeight) } else { $baseHeight }
+    for ($col = 0; $col -lt $vipCols; $col++) {
+        $x = $workArea.X + $escortColumnWidth + ($col * $vipTileWidth)
+        $y = $workArea.Y + ($row * $vipTileHeight)
+        $w = if ($col -eq $vipCols - 1) {
+            $workArea.Width - ($escortColumnWidth + (($vipCols - 1) * $vipTileWidth))
+        }
+        else {
+            $vipTileWidth
+        }
+
+        $h = if ($row -eq $rows - 1) {
+            $workArea.Height - ($row * $vipTileHeight)
+        }
+        else {
+            $vipTileHeight
+        }
+
         $positions += @{ X = $x; Y = $y; W = $w; H = $h }
     }
 }
@@ -178,4 +196,4 @@ for ($i = 0; $i -lt [Math]::Min($handles.Count, $positions.Count); $i++) {
     [NativeMethods]::MoveWindow($hWnd, $p.X, $p.Y, $p.W, $p.H, $true) | Out-Null
 }
 
-Write-Host "Field Apps started and tiled (Escort top-left, VIPs fill remaining tiles)."
+Write-Host "Field Apps started and tiled (Escort full left column, VIPs in a 2x3 grid)."

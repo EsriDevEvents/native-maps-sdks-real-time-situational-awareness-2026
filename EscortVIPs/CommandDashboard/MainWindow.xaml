@@ -4,14 +4,86 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:CommandDashboard.Models"
+        xmlns:calcite="http://schemas.esri.com/calcite/2024"
         xmlns:esri="http://schemas.esri.com/arcgis/runtime/2013"
         mc:Ignorable="d"
         Style="{StaticResource CalciteWindowStyle}"
-        Title="CommandDashboard"
+        Title="Command Dashboard"
         Height="720"
         Width="1180"
         MinHeight="560"
         MinWidth="920">
+    <Window.Resources>
+        <Style x:Key="VipStatusBannerStyle"
+               TargetType="Border"
+               BasedOn="{StaticResource CalciteFormBorderStyle}">
+            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Background" Value="{StaticResource CalciteStatusSuccessBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsAnyVipDanger}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource CalciteStatusWarningBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsAnyVipOut}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource CalciteStatusDangerBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="VipStopActionButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource CalciteDangerButtonStyle}">
+            <Setter Property="ClickMode" Value="Press" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsOutOfRange}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="VipHurryActionButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource CalcitePrimaryButtonStyle}">
+            <Setter Property="ClickMode" Value="Press" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsOutOfRange}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="VipSearchToggleButtonStyle"
+               TargetType="ToggleButton"
+               BasedOn="{StaticResource CalciteSecondaryButtonBaseStyle}">
+            <Setter Property="Foreground" Value="{StaticResource CalciteText1Brush}" />
+            <Setter Property="ToolTip" Value="Show VIP filter" />
+            <Style.Triggers>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource CalciteBrandPressBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource CalciteBrandPressBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource CalciteTextInverseBrush}" />
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="{StaticResource CalciteBrandBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource CalciteBrandHoverBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource CalciteTextInverseBrush}" />
+                    <Setter Property="ToolTip" Value="Hide VIP filter" />
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsChecked" Value="True" />
+                        <Condition Property="IsPressed" Value="True" />
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="{StaticResource CalciteBrandPressBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource CalciteBrandPressBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource CalciteTextInverseBrush}" />
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid Background="{StaticResource CalciteBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -37,18 +109,15 @@
             </StackPanel>
 
             <Border Grid.Column="1"
-                    Padding="10,4"
-                    CornerRadius="12"
-                    Background="{StaticResource CalciteBackground2Brush}"
-                    BorderBrush="{StaticResource CalciteBorder1Brush}"
-                    BorderThickness="1"
-                    VerticalAlignment="Top">
-                <TextBlock VerticalAlignment="Center"
-                           Foreground="{StaticResource CalciteText2Brush}"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           Text="DEVICE-DRIVEN" />
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"
+                    Style="{StaticResource VipStatusBannerStyle}">
+                <TextBlock FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource CalciteTextInverseBrush}"
+                           Text="{Binding VipOverallStatus}" />
             </Border>
+
         </Grid>
 
         <Grid Grid.Row="2" Margin="14,0,14,14">
@@ -75,33 +144,10 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="10" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="10" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                        <Border Padding="12"
-                            CornerRadius="8">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="{StaticResource CalciteStatusSuccessBrush}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsAnyVipDanger}" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource CalciteStatusWarningBrush}" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding IsAnyVipOut}" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource CalciteStatusDangerBrush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <TextBlock FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource CalciteTextInverseBrush}"
-                                   Text="{Binding VipOverallStatus}" />
-                    </Border>
-
-                    <Border Grid.Row="2"
+                    <Border
                             Padding="12"
                             CornerRadius="8"
                             Background="{StaticResource CalciteBackground2Brush}">
@@ -109,7 +155,9 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="8" />
-                                    <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="8" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock FontSize="16"
@@ -143,10 +191,17 @@
                                                Text="{Binding TotalVIPs}" />
                                 </StackPanel>
                             </Grid>
+
+                            <TextBlock Grid.Row="4"
+                                       Margin="0,2,0,0"
+                                       Foreground="{StaticResource CalciteText1Brush}"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding VipPerimeterSummary}" />
                         </Grid>
                     </Border>
 
-                    <Grid Grid.Row="4">
+                    <Grid Grid.Row="2">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="8" />
@@ -157,10 +212,30 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource CalciteText1Brush}"
-                                   Text="VIPs" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource CalciteText1Brush}"
+                                       Text="VIPs" />
+
+                            <ToggleButton x:Name="VipSearchToggle"
+                                          Grid.Column="1"
+                                          Width="32"
+                                          Height="32"
+                                          Padding="0"
+                                          Style="{StaticResource VipSearchToggleButtonStyle}">
+                                <TextBlock Text="{calcite:CalciteIconGlyph Icon=Search}"
+                                           FontFamily="{StaticResource CalciteUIIconsMediumFontFamily}"
+                                           FontSize="16"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </ToggleButton>
+                        </Grid>
 
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
@@ -185,12 +260,33 @@
                                     Content="Clear"
                                     Command="{Binding ClearVipFilterCommand}"
                                     Style="{StaticResource CalciteSecondaryButtonStyle}" />
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, ElementName=VipSearchToggle}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                         </Grid>
 
                         <TextBlock Grid.Row="4"
                                    Foreground="{StaticResource CalciteText3Brush}"
                                    FontSize="12"
-                                   Text="{Binding VipFilterStatus}" />
+                                   Text="{Binding VipFilterStatus}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, ElementName=VipSearchToggle}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
                         <ScrollViewer Grid.Row="6"
                                       VerticalScrollBarVisibility="Auto"
@@ -293,33 +389,13 @@
                                                                                                         </Grid.ColumnDefinitions>
                                                     <Button Content="Stop"
                                                             Click="OnVipStopClick"
-                                                            Tag="{Binding DisplayName}">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button" BasedOn="{StaticResource CalciteDangerButtonStyle}">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsOutOfRange}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Button.Style>
-                                                    </Button>
+                                                            Tag="{Binding DisplayName}"
+                                                            Style="{StaticResource VipStopActionButtonStyle}" />
                                                     <Button Grid.Column="2"
                                                             Content="Hurry"
                                                             Click="OnVipHurryClick"
-                                                            Tag="{Binding DisplayName}">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button" BasedOn="{StaticResource CalcitePrimaryButtonStyle}">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsOutOfRange}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Button.Style>
-                                                    </Button>
+                                                            Tag="{Binding DisplayName}"
+                                                            Style="{StaticResource VipHurryActionButtonStyle}" />
                                                 </Grid>
                                             </Grid>
                                         </Border>

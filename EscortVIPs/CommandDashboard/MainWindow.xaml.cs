@@ -152,13 +152,6 @@ public partial class MainWindow : Window
             or nameof(FieldUnitStatus.DirectionToEscort)
             or nameof(FieldUnitStatus.DisplayName))
         {
-            if (!ReferenceEquals(unit, viewModel.EscortUnit)
-                && !unit.IsOutOfRange
-                && !string.IsNullOrWhiteSpace(unit.OperatorControl))
-            {
-                unit.OperatorControl = null;
-            }
-
             UpdateSafetyPolygon();
 
             if (ReferenceEquals(unit, viewModel.EscortUnit)
@@ -274,7 +267,7 @@ public partial class MainWindow : Window
         var routeSymbol = new SimpleLineSymbol(
             SimpleLineSymbolStyle.Solid,
             System.Drawing.Color.FromArgb(220, 38, 121, 219),
-            3.0);
+            1.0);
 
         if (mainRouteGraphic is null)
         {
@@ -448,7 +441,8 @@ public partial class MainWindow : Window
 
     private async void OnVipStopClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: string vipDeviceId } || string.IsNullOrWhiteSpace(vipDeviceId))
+        var vipDeviceId = ResolveVipDeviceIdFromSender(sender);
+        if (string.IsNullOrWhiteSpace(vipDeviceId))
             return;
 
         var unit = viewModel.VipUnits.FirstOrDefault(v => string.Equals(v.DisplayName, vipDeviceId, StringComparison.OrdinalIgnoreCase));
@@ -460,7 +454,8 @@ public partial class MainWindow : Window
 
     private async void OnVipHurryClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: string vipDeviceId } || string.IsNullOrWhiteSpace(vipDeviceId))
+        var vipDeviceId = ResolveVipDeviceIdFromSender(sender);
+        if (string.IsNullOrWhiteSpace(vipDeviceId))
             return;
 
         var unit = viewModel.VipUnits.FirstOrDefault(v => string.Equals(v.DisplayName, vipDeviceId, StringComparison.OrdinalIgnoreCase));
@@ -468,6 +463,27 @@ public partial class MainWindow : Window
             unit.OperatorControl = "HURRY";
 
         await fieldMessagingHost.SendVipHurryUpAsync(vipDeviceId);
+    }
+
+    private static string? ResolveVipDeviceIdFromSender(object sender)
+    {
+        if (sender is not Button button)
+            return null;
+
+        if (button.Tag is string tagString && !string.IsNullOrWhiteSpace(tagString))
+            return tagString.Trim();
+
+        if (button.Tag is not null)
+        {
+            var tagValue = button.Tag.ToString();
+            if (!string.IsNullOrWhiteSpace(tagValue))
+                return tagValue.Trim();
+        }
+
+        if (button.DataContext is FieldUnitStatus unit && !string.IsNullOrWhiteSpace(unit.DisplayName))
+            return unit.DisplayName.Trim();
+
+        return null;
     }
 
 }

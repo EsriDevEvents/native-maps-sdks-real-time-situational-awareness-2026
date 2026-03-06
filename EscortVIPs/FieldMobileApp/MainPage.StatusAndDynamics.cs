@@ -42,15 +42,22 @@ public partial class MainPage
     private void ApplyStatusVisual(string? status, string? detail)
     {
         var normalized = status?.Trim();
+        var shouldShowVipRejoinBanner = IsVipRole() && string.Equals(normalized, "Out", StringComparison.OrdinalIgnoreCase);
+        VipRejoinBanner.IsVisible = shouldShowVipRejoinBanner;
+
         if (string.Equals(normalized, "In", StringComparison.OrdinalIgnoreCase))
         {
             BackgroundColor = StatusInColor;
-            RoleStateLabel.Text = "IN";
+            RoleStateLabel.Text = IsVipRole()
+                ? "You are inside the security perimeter"
+                : "IN";
         }
         else if (string.Equals(normalized, "Out", StringComparison.OrdinalIgnoreCase))
         {
             BackgroundColor = StatusOutColor;
-            RoleStateLabel.Text = "OUT";
+            RoleStateLabel.Text = IsVipRole()
+                ? "You are outside the security perimeter"
+                : "OUT";
         }
         else if (string.Equals(normalized, "Near", StringComparison.OrdinalIgnoreCase)
             || string.Equals(normalized, "Edge", StringComparison.OrdinalIgnoreCase)
@@ -58,7 +65,9 @@ public partial class MainPage
             || string.Equals(normalized, "Danger", StringComparison.OrdinalIgnoreCase))
         {
             BackgroundColor = StatusWarningColor;
-            RoleStateLabel.Text = "WARNING";
+            RoleStateLabel.Text = IsVipRole()
+                ? "You are near the edge of the security perimeter"
+                : "WARNING";
         }
         else
         {
@@ -67,11 +76,15 @@ public partial class MainPage
             {
                 RoleStateLabel.Text = IsEscortRole()
                     ? "ACTIVE"
-                    : "CONNECTED";
+                    : !string.IsNullOrWhiteSpace(detail)
+                        ? detail
+                        : "CONNECTED";
             }
             else
             {
-                RoleStateLabel.Text = normalized.ToUpperInvariant();
+                RoleStateLabel.Text = IsVipRole()
+                    ? $"Current status: {normalized}"
+                    : normalized.ToUpperInvariant();
             }
         }
 
@@ -306,6 +319,12 @@ public partial class MainPage
             .Select(pair => pair.Value.Status)
             .ToList();
 
+        static string BuildCountSummary(int affectedCount, int totalCount, string stateLabel)
+        {
+            var verb = affectedCount == 1 ? "is" : "are";
+            return $"{affectedCount} of {totalCount} VIPs {verb} {stateLabel}";
+        }
+
         if (activeStatuses.Count == 0)
         {
             EscortOverallStatusBanner.BackgroundColor = StatusNeutralColor;
@@ -313,24 +332,26 @@ public partial class MainPage
             return;
         }
 
-        if (activeStatuses.Any(status => string.Equals(status, "Out", StringComparison.OrdinalIgnoreCase)))
+        var outsideCount = activeStatuses.Count(status => string.Equals(status, "Out", StringComparison.OrdinalIgnoreCase));
+        if (outsideCount > 0)
         {
             EscortOverallStatusBanner.BackgroundColor = StatusOutColor;
-            EscortOverallStatusLabel.Text = "VIPs Out of Range";
+            EscortOverallStatusLabel.Text = BuildCountSummary(outsideCount, activeStatuses.Count, "outside the perimeter");
             return;
         }
 
-        if (activeStatuses.Any(status => string.Equals(status, "WARNING", StringComparison.OrdinalIgnoreCase)
+        var warningCount = activeStatuses.Count(status => string.Equals(status, "WARNING", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(status, "Near", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(status, "Danger", StringComparison.OrdinalIgnoreCase)))
+                || string.Equals(status, "Danger", StringComparison.OrdinalIgnoreCase));
+        if (warningCount > 0)
         {
             EscortOverallStatusBanner.BackgroundColor = StatusWarningColor;
-            EscortOverallStatusLabel.Text = "VIPs in Warning Perimeter";
+            EscortOverallStatusLabel.Text = BuildCountSummary(warningCount, activeStatuses.Count, "in the warning perimeter");
             return;
         }
 
         EscortOverallStatusBanner.BackgroundColor = StatusInColor;
-        EscortOverallStatusLabel.Text = "All VIPs in Range";
+        EscortOverallStatusLabel.Text = BuildCountSummary(activeStatuses.Count, activeStatuses.Count, "inside the perimeter");
     }
 
     private void UpdateEscortVipPosition(string entityKey, double latitude, double longitude)

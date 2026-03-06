@@ -32,7 +32,20 @@ public partial class MainPage : ContentPage
             ? launchOptions.SimulationUrl
             : "ws://127.0.0.1:8775/ws/";
 
-        Title = configuredDeviceId;
+        var appTitle = string.Equals(configuredRole, "Escort", StringComparison.OrdinalIgnoreCase)
+            ? "Escort"
+            : $"VIP: {configuredDeviceId}";
+
+        Title = appTitle;
+        if (Shell.Current is not null)
+        {
+            Shell.Current.Title = appTitle;
+        }
+
+        if (Application.Current?.Windows.Count > 0)
+        {
+            Application.Current.Windows[0].Title = appTitle;
+        }
 
         var invalidNameCharacters = Path.GetInvalidFileNameChars();
         var safeDeviceId = new string(configuredDeviceId.Select(character => invalidNameCharacters.Contains(character) ? '_' : character).ToArray());
@@ -40,6 +53,7 @@ public partial class MainPage : ContentPage
 
         ApplyStatusVisual(null, simulatedMode ? "Simulated mode" : "Live mode");
         UpdateVipCommandBanner(null, null, false);
+        RoleStateLabel.FontSize = string.Equals(configuredRole, "VIP", StringComparison.OrdinalIgnoreCase) ? 24 : 40;
         UpdateEscortMetricsDetail();
         VipBottomPanel.IsVisible = string.Equals(configuredRole, "VIP", StringComparison.OrdinalIgnoreCase);
         EscortBottomPanel.IsVisible = string.Equals(configuredRole, "Escort", StringComparison.OrdinalIgnoreCase);

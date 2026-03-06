@@ -5,17 +5,16 @@ using CommandMessaging;
 using CommandDashboard.Models;
 using CommandDashboard.RealTime;
 using CommandDashboard.Services;
-using Esri.Calcite.WPF;
 using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Symbology;
 using System.Windows;
 using System.IO;
-using System.Globalization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Esri.ArcGISRuntime.RealTime;
 using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace CommandDashboard.ViewModels;
 
@@ -58,10 +57,14 @@ public partial class MainViewModel : ObservableObject
             fieldNames: new[] { "role" },
             uniqueValues: new[]
             {
-                new UniqueValue("Escort", "Escort", escortSymbol, "Escort")
+                new UniqueValue("Escort", "Escort", escortSymbol, "Escort"),
+                new UniqueValue("escort", "escort", escortSymbol, "escort"),
+                new UniqueValue("VIP", "VIP", vipVipSymbol, "VIP"),
+                new UniqueValue("Vip", "Vip", vipVipSymbol, "Vip"),
+                new UniqueValue("vip", "vip", vipVipSymbol, "vip")
             },
-            defaultLabel: "VIP",
-            defaultSymbol: vipVipSymbol);
+            defaultLabel: "Escort",
+            defaultSymbol: escortSymbol);
 
         DynamicEntityLayer = new DynamicEntityLayer(dynamicEntityDataSource)
         {
@@ -77,7 +80,7 @@ public partial class MainViewModel : ObservableObject
         sessionId = $"DEVSUMMIT-2026-{DateTime.Now:HHmm}";
         RecalculateAggregateState();
         EscortConnectionState = "Disconnected";
-        VipWhereClause = "role = 'VIP'";
+        VipWhereClause = "name = \"Tesla\"";
         VipFilterStatus = "Filter: showing all VIPs";
     }
 
@@ -114,7 +117,10 @@ public partial class MainViewModel : ObservableObject
     private string vipOverallStatus = "All VIPs In Range";
 
     [ObservableProperty]
-    private string vipWhereClause = "role = 'VIP'";
+    private string vipPerimeterSummary = "0 of 0 VIPs inside the security perimeter";
+
+    [ObservableProperty]
+    private string vipWhereClause = "name = \"Tesla\"";
 
     [ObservableProperty]
     private string vipFilterStatus = "Filter: showing all VIPs";
@@ -172,7 +178,7 @@ public partial class MainViewModel : ObservableObject
     {
         activeVipFilterTrackIds = null;
         IsVipFilterActive = false;
-        VipWhereClause = "role = 'VIP'";
+        VipWhereClause = "name = \"Tesla\"";
         RebuildFilteredVipUnits();
         VipFilterStatus = "Filter: showing all VIPs";
     }
@@ -213,7 +219,9 @@ public partial class MainViewModel : ObservableObject
 
     private void RecalculateAggregateState()
     {
-        IsAnyVipOut = VipUnits.Any(unit => unit.Status == UnitStatus.Out);
+        var outOfPerimeterCount = VipUnits.Count(unit => unit.Status == UnitStatus.Out);
+
+        IsAnyVipOut = outOfPerimeterCount > 0;
         IsAnyVipDanger = VipUnits.Any(unit => unit.Status == UnitStatus.Danger);
         TotalVIPs = VipUnits.Count;
         VipOverallStatus = IsAnyVipOut
@@ -221,6 +229,10 @@ public partial class MainViewModel : ObservableObject
             : IsAnyVipDanger
                 ? "VIPs in Warning Perimeter"
                 : "All VIPs in Range";
+
+        VipPerimeterSummary = outOfPerimeterCount > 0
+            ? $"{outOfPerimeterCount} of {TotalVIPs} VIPs outside the security perimeter"
+            : $"{TotalVIPs} of {TotalVIPs} VIPs inside the security perimeter";
     }
 
     private void PublishDynamicEntities()
@@ -243,32 +255,34 @@ public partial class MainViewModel : ObservableObject
 
     private static Symbol CreateEscortShieldSymbol()
     {
-        var fallback = new SimpleMarkerSymbol(
-            SimpleMarkerSymbolStyle.Diamond,
-            System.Drawing.Color.FromArgb(30, 136, 229),
-            14)
+        var fallback = new TextSymbol
         {
-            Outline = new SimpleLineSymbol(
-                SimpleLineSymbolStyle.Solid,
-                System.Drawing.Color.FromArgb(21, 101, 192),
-                1.5)
+            Text = "🛡",
+            Color = System.Drawing.Color.FromArgb(0, 86, 153),
+            Size = 30,
+            HaloColor = System.Drawing.Color.FromArgb(187, 222, 251),
+            HaloWidth = 2
         };
 
         try
         {
-            var shieldPath = BuildCalciteShieldMarkerImage();
+            var shieldPath = BuildEscortShieldMarkerImage();
             if (string.IsNullOrWhiteSpace(shieldPath) || !File.Exists(shieldPath))
             {
                 return fallback;
             }
 
-            var symbol = new PictureMarkerSymbol(new Uri(shieldPath, UriKind.Absolute))
+            var shieldFileUri = new UriBuilder
             {
-                Width = 32,
-                Height = 32
-            };
+                Scheme = Uri.UriSchemeFile,
+                Path = Path.GetFullPath(shieldPath)
+            }.Uri;
 
-            return symbol;
+            return new PictureMarkerSymbol(shieldFileUri)
+            {
+                Width = 56,
+                Height = 56
+            };
         }
         catch
         {
@@ -276,52 +290,49 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private static string? BuildCalciteShieldMarkerImage()
+    private static string? BuildEscortShieldMarkerImage()
     {
-        if (Application.Current?.Resources is null)
-            return null;
+        const int markerSize = 64;
+        var outlineColor = System.Windows.Media.Color.FromRgb(0, 86, 153);
+        var fillColor = System.Windows.Media.Color.FromRgb(241, 248, 255);
+        const double viewBoxSize = 100d;
+        const double viewBoxCenter = 50d;
+        const double innerInsetScale = 0.86d;
+        var baseScale = markerSize / viewBoxSize;
 
-        var shieldGlyph = new CalciteIconGlyphExtension
-        {
-            Icon = CalciteIcon.ShieldCoin
-        }.ProvideValue(null!)?.ToString();
+        var outlineBrush = new SolidColorBrush(outlineColor);
+        outlineBrush.Freeze();
 
-        if (string.IsNullOrWhiteSpace(shieldGlyph))
-            return null;
+        var fillBrush = new SolidColorBrush(fillColor);
+        fillBrush.Freeze();
 
-        if (Application.Current.Resources["CalciteUIIconsMediumFontFamily"] is not FontFamily calciteIconFont)
-            return null;
+        const string shieldPathData = "M50 5 L90 20 V45 C90 72 72 92 50 98 C28 92 10 72 10 45 V20 Z";
+        var geometryConverter = TypeDescriptor.GetConverter(typeof(System.Windows.Media.Geometry));
+        var outerShieldGeometry = geometryConverter.ConvertFromInvariantString(shieldPathData) as System.Windows.Media.Geometry
+            ?? throw new InvalidOperationException("Unable to parse escort shield path.");
+        outerShieldGeometry.Transform = new MatrixTransform(baseScale, 0, 0, baseScale, 0, 0);
+        outerShieldGeometry.Freeze();
 
-        var markerSize = 44;
-        var glyphSize = 36d;
-        var typeface = new Typeface(calciteIconFont, FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
-        var glyphBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 86, 153));
-        glyphBrush.Freeze();
-
-        var formattedText = new FormattedText(
-            shieldGlyph,
-            CultureInfo.InvariantCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            glyphSize,
-            glyphBrush,
-            1.0);
-
-        var x = (markerSize - formattedText.WidthIncludingTrailingWhitespace) / 2;
-        var y = (markerSize - formattedText.Height) / 2;
+        var innerShieldGeometry = geometryConverter.ConvertFromInvariantString(shieldPathData) as System.Windows.Media.Geometry
+            ?? throw new InvalidOperationException("Unable to parse escort shield path.");
+        var innerScale = baseScale * innerInsetScale;
+        var innerOffset = (viewBoxCenter * (1 - innerInsetScale)) * baseScale;
+        innerShieldGeometry.Transform = new MatrixTransform(innerScale, 0, 0, innerScale, innerOffset, innerOffset);
+        innerShieldGeometry.Freeze();
 
         var visual = new DrawingVisual();
         using (var context = visual.RenderOpen())
         {
-            context.DrawText(formattedText, new Point(x, y));
+            context.DrawGeometry(outlineBrush, null, outerShieldGeometry);
+            context.DrawGeometry(fillBrush, null, innerShieldGeometry);
         }
 
         var bitmap = new RenderTargetBitmap(markerSize, markerSize, 96, 96, PixelFormats.Pbgra32);
         bitmap.Render(visual);
 
-        var outputDirectory = Path.Combine(Path.GetTempPath(), "CommandDashboard");
+        var outputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CommandDashboard");
         Directory.CreateDirectory(outputDirectory);
-        var outputPath = Path.Combine(outputDirectory, "escort-shield-calcite.png");
+        var outputPath = Path.Combine(outputDirectory, "escort-shield-custom.png");
 
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
@@ -561,6 +572,31 @@ public partial class MainViewModel : ObservableObject
                     if (!string.IsNullOrWhiteSpace(payload.DirectionToEscort))
                     {
                         unit.DirectionToEscort = payload.DirectionToEscort;
+                    }
+
+                    break;
+                }
+            case MessageTypes.VipControl:
+                {
+                    var payload = MessageSerializer.DeserializePayload<VipControlPayload>(envelope);
+                    if (payload is null || string.IsNullOrWhiteSpace(payload.DeviceId))
+                        break;
+
+                    EnsureFieldDeviceRegistered(payload.DeviceId, UnitRole.Vip);
+                    if (!registeredFieldAppDeviceIds.Contains(payload.DeviceId))
+                        break;
+
+                    var unit = ResolveUnit(payload.DeviceId);
+                    if (!payload.IsActive
+                        || string.Equals(payload.Signal, "RESUME", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(payload.Signal, "NORMAL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        unit.OperatorControl = null;
+                    }
+                    else if (string.Equals(payload.Signal, "STOP", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(payload.Signal, "HURRY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        unit.OperatorControl = payload.Signal.Trim().ToUpperInvariant();
                     }
 
                     break;

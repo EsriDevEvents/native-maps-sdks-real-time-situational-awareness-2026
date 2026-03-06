@@ -4,7 +4,7 @@
              x:Class="FieldMobileApp.MainPage"
              Title="Field App">
        <Grid Padding="24"
-                     RowDefinitions="*,Auto">
+                     RowDefinitions="Auto,*,Auto">
               <Border x:Name="EscortOverallStatusBanner"
                       Grid.Row="0"
                       IsVisible="False"
@@ -23,7 +23,7 @@
                             TextColor="White"/>
               </Border>
 
-              <VerticalStackLayout Grid.Row="0"
+              <VerticalStackLayout Grid.Row="1"
                                    VerticalOptions="Center"
                                    HorizontalOptions="Fill"
                                    Spacing="14">
@@ -43,17 +43,35 @@
                                    TextColor="White"/>
                      </Border>
 
+                     <Border x:Name="VipRejoinBanner"
+                             IsVisible="False"
+                             HorizontalOptions="Center"
+                             StrokeThickness="1"
+                             Stroke="#FFFFCDD2"
+                             Background="#CCA61B1B"
+                             StrokeShape="RoundRectangle 12"
+                             Padding="14,8">
+                            <Label x:Name="VipRejoinLabel"
+                                   Text="Please rejoin the group"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="White"/>
+                     </Border>
+
                      <Label x:Name="RoleStateLabel"
                             Text="UNKNOWN"
                             FontSize="40"
                             FontAttributes="Bold"
-                            HorizontalOptions="Center"
+                            MaxLines="2"
+                            LineBreakMode="WordWrap"
+                            HorizontalOptions="Fill"
                             HorizontalTextAlignment="Center"
                             TextColor="White"/>
               </VerticalStackLayout>
 
               <Grid x:Name="VipBottomPanel"
-                    Grid.Row="1"
+                       Grid.Row="2"
                     HeightRequest="44"
                     ColumnDefinitions="*"
                     VerticalOptions="End">
@@ -68,7 +86,7 @@
               </Grid>
 
               <Grid x:Name="EscortBottomPanel"
-                    Grid.Row="1"
+                       Grid.Row="2"
                     HeightRequest="150"
                     RowDefinitions="*"
                     ColumnDefinitions="Auto,*"

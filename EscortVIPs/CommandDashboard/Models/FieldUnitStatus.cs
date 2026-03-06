@@ -43,28 +43,15 @@ public partial class FieldUnitStatus : ObservableObject
     {
         get
         {
-            var isWarning = Status == UnitStatus.Danger;
+            var baseStatus = Status == UnitStatus.Danger ? "Warning" : Status.ToString();
 
-            if (string.Equals(OperatorControl, "STOP", StringComparison.OrdinalIgnoreCase) && (IsOutOfRange || isWarning))
-            {
-                if (isWarning)
-                    return "Warning (Hold)";
+            if (string.Equals(OperatorControl, "STOP", StringComparison.OrdinalIgnoreCase))
+                return $"{baseStatus} (Hold)";
 
-                return "Out (Hold)";
-            }
+            if (string.Equals(OperatorControl, "HURRY", StringComparison.OrdinalIgnoreCase))
+                return $"{baseStatus} (Hurry)";
 
-            if (string.Equals(OperatorControl, "HURRY", StringComparison.OrdinalIgnoreCase) && (IsOutOfRange || isWarning))
-            {
-                if (isWarning)
-                    return "Warning (Hurry)";
-
-                return "Out (Hurry)";
-            }
-
-            if (isWarning)
-                return "Warning";
-
-            return Status.ToString();
+            return baseStatus;
         }
     }
 

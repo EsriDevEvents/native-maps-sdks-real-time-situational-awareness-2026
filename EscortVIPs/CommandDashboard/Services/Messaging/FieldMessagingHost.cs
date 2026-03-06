@@ -479,7 +479,20 @@ public sealed class FieldMessagingHost : IAsyncDisposable
             message,
             directive != VipSpeedDirective.Normal);
         var envelope = MessageSerializer.CreateEnvelope(MessageTypes.VipControl, sessionId, "dashboard", payload);
-        return await SendToDeviceAsync(vipDeviceId, envelope, cancellationToken).ConfigureAwait(false);
+
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            var sent = await SendToDeviceAsync(vipDeviceId, envelope, cancellationToken).ConfigureAwait(false);
+            if (sent)
+                return true;
+
+            if (attempt < 2)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(120), cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return false;
     }
 
     private static double ApplyVipSpeedDirective(double baseSpeedMetersPerSecond, VipSpeedDirective directive)

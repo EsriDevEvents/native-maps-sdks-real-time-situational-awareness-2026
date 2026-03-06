@@ -11,6 +11,7 @@ public partial class MainPage
     private static readonly TimeSpan ReconnectDelay = TimeSpan.FromSeconds(1.5);
     private readonly SemaphoreSlim socketSendGate = new(1, 1);
     private readonly SemaphoreSlim simulationConnectGate = new(1, 1);
+    private readonly SemaphoreSlim vipControlRelayGate = new(1, 1);
 
     private ClientWebSocket? socket;
     private ClientWebSocket? simulationSocket;
@@ -31,6 +32,7 @@ public partial class MainPage
     private DateTimeOffset lastInboundUtc;
     private DateTimeOffset lastOutboundUtc;
     private bool hasSentOutbound;
+    private VipControlPayload? pendingVipControlPayload;
 
     private SimulationLocationDataSource? ActiveSimulationLocationDataSource => locationDataSource as SimulationLocationDataSource;
 
@@ -215,6 +217,7 @@ public partial class MainPage
                             return;
 
                         UpdateVipCommandBanner(payload.Signal, payload.Message, payload.IsActive);
+                        pendingVipControlPayload = payload;
                         _ = RelayVipControlToSimulationEngineAsync(payload);
                         return;
                     }
@@ -301,6 +304,7 @@ public partial class MainPage
                         await ConnectSimulationAsync(role, deviceId, sessionId, cancellationToken);
                         simulationReceiveTask = Task.Run(() => SimulationReceiveLoopAsync(role, deviceId, cancellationToken), cancellationToken);
                         LogDiagnostic("Simulation socket connected.");
+                        _ = FlushPendingVipControlToSimulationAsync();
                         return;
                     }
                     catch (OperationCanceledException)
@@ -370,6 +374,7 @@ public partial class MainPage
                             return;
 
                         UpdateVipCommandBanner(payload.Signal, payload.Message, payload.IsActive);
+                        _ = RelayVipControlToDashboardAsync(envelope);
                     }
                 });
             }
@@ -384,6 +389,14 @@ public partial class MainPage
     }
 
     private async Task RelayRouteSnapshotToDashboardAsync(FieldMessageEnvelope envelope)
+    {
+        if (socket is null || socket.State != WebSocketState.Open)
+            return;
+
+        await SendAsync(envelope, receiveCts?.Token ?? CancellationToken.None);
+    }
+
+    private async Task RelayVipControlToDashboardAsync(FieldMessageEnvelope envelope)
     {
         if (socket is null || socket.State != WebSocketState.Open)
             return;
@@ -414,18 +427,76 @@ public partial class MainPage
 
     private async Task RelayVipControlToSimulationEngineAsync(VipControlPayload payload)
     {
-        if (simulationSocket is null || simulationSocket.State != WebSocketState.Open)
+        pendingVipControlPayload = payload;
+        await FlushPendingVipControlToSimulationAsync();
+    }
+
+    private async Task FlushPendingVipControlToSimulationAsync()
+    {
+        if (!simulatedMode)
             return;
+
+        await vipControlRelayGate.WaitAsync();
+        try
+        {
+            var payload = pendingVipControlPayload;
+            if (payload is null)
+                return;
 
         var sessionId = connectedSessionId ?? configuredSessionId;
         var deviceId = connectedDeviceId ?? configuredDeviceId;
+        var cancellationToken = receiveCts?.Token ?? CancellationToken.None;
+
+        if (simulationSocket is null || simulationSocket.State != WebSocketState.Open)
+        {
+            try
+            {
+                await EnsureSimulationConnectedAsync(configuredRole, deviceId, sessionId, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                LogDiagnostic($"RelayVipControlToSimulationEngineAsync reconnect failed: {ex.Message}");
+            }
+        }
+
+        if (simulationSocket is null || simulationSocket.State != WebSocketState.Open)
+        {
+            LogDiagnostic("RelayVipControlToSimulationEngineAsync skipped because simulation websocket is not open.");
+            return;
+        }
+
         var envelope = MessageSerializer.CreateEnvelope(
             MessageTypes.VipControl,
             sessionId,
             deviceId,
             payload);
 
-        await SendSimulationAsync(envelope, receiveCts?.Token ?? CancellationToken.None);
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            var sent = await SendSimulationAsync(envelope, cancellationToken);
+            if (sent)
+            {
+                if (Equals(pendingVipControlPayload, payload))
+                    pendingVipControlPayload = null;
+                return;
+            }
+
+            if (attempt < 2)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(120), cancellationToken);
+            }
+        }
+
+        LogDiagnostic("RelayVipControlToSimulationEngineAsync failed after retries.");
+        }
+        finally
+        {
+            vipControlRelayGate.Release();
+        }
     }
 
     private async Task SendLoopAsync(string role, string deviceId, string sessionId, CancellationToken cancellationToken)
