@@ -2,7 +2,7 @@ namespace FieldMobileApp;
 
 public partial class MainPage
 {
-    private readonly object diagnosticsGate = new();
+    private readonly Lock diagnosticsGate = new();
     private readonly string diagnosticsLogPath;
 
     private static LaunchOptions ParseLaunchOptions(string[] args)

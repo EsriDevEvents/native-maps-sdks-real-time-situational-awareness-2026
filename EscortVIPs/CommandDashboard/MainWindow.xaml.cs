@@ -34,7 +34,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        viewModel = new MainViewModel(new MockDashboardDataService());
+        viewModel = new MainViewModel(new TourDashboardDataService());
         DataContext = viewModel;
         var endpointPrefix = Environment.GetEnvironmentVariable("DEMO_WS_PREFIX") ?? "http://127.0.0.1:8765/ws/";
         fieldMessagingHost = new FieldMessagingHost(viewModel.SessionId, endpointPrefix);

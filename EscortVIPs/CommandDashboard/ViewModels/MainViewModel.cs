@@ -15,12 +15,16 @@ using System.Windows.Media.Imaging;
 using Esri.ArcGISRuntime.RealTime;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
+using DrawingColor = System.Drawing.Color;
+using WpfPoint = System.Windows.Point;
+using WpfLineSegment = System.Windows.Media.LineSegment;
 
 namespace CommandDashboard.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly MockDynamicEntityDataSource dynamicEntityDataSource;
+    private readonly TourDynamicEntityDataSource dynamicEntityDataSource;
     private readonly HashSet<string> connectedDeviceIds = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> registeredFieldAppDeviceIds = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<DynamicEntity> subscribedDynamicEntities = new(ReferenceEqualityComparer.Instance);
@@ -46,10 +50,10 @@ public partial class MainViewModel : ObservableObject
         EscortUnit.DirectionToEscort = "-";
         MainMap = new Map(BasemapStyle.ArcGISStreets);
 
-        dynamicEntityDataSource = new MockDynamicEntityDataSource();
-        var vipVipSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.FromArgb(236, 239, 241), 14)
+        dynamicEntityDataSource = new TourDynamicEntityDataSource();
+        var vipVipSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, DrawingColor.FromArgb(236, 239, 241), 14)
         {
-            Outline = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, System.Drawing.Color.FromArgb(38, 50, 56), 1.5)
+            Outline = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, DrawingColor.FromArgb(38, 50, 56), 1.5)
         };
         var escortSymbol = CreateEscortShieldSymbol();
 
@@ -183,7 +187,7 @@ public partial class MainViewModel : ObservableObject
         VipFilterStatus = "Filter: showing all VIPs";
     }
 
-    private void UnitOnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void UnitOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(FieldUnitStatus.Status) || e.PropertyName == nameof(FieldUnitStatus.DistanceMeters))
         {
@@ -222,7 +226,7 @@ public partial class MainViewModel : ObservableObject
         var outOfPerimeterCount = VipUnits.Count(unit => unit.Status == UnitStatus.Out);
 
         IsAnyVipOut = outOfPerimeterCount > 0;
-        IsAnyVipDanger = VipUnits.Any(unit => unit.Status == UnitStatus.Danger);
+        IsAnyVipDanger = VipUnits.Any(unit => unit.Status == UnitStatus.Warning);
         TotalVIPs = VipUnits.Count;
         VipOverallStatus = IsAnyVipOut
             ? "VIPs Out of Range"
@@ -258,9 +262,9 @@ public partial class MainViewModel : ObservableObject
         var fallback = new TextSymbol
         {
             Text = "🛡",
-            Color = System.Drawing.Color.FromArgb(0, 86, 153),
+            Color = DrawingColor.FromArgb(0, 86, 153),
             Size = 30,
-            HaloColor = System.Drawing.Color.FromArgb(187, 222, 251),
+            HaloColor = DrawingColor.FromArgb(187, 222, 251),
             HaloWidth = 2
         };
 
@@ -272,20 +276,16 @@ public partial class MainViewModel : ObservableObject
                 return fallback;
             }
 
-            var shieldFileUri = new UriBuilder
-            {
-                Scheme = Uri.UriSchemeFile,
-                Path = Path.GetFullPath(shieldPath)
-            }.Uri;
-
+            var shieldFileUri = new Uri(Path.GetFullPath(shieldPath));
             return new PictureMarkerSymbol(shieldFileUri)
             {
-                Width = 56,
-                Height = 56
+                Width = 44,
+                Height = 44
             };
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to create escort shield symbol. Falling back to text marker. {ex}");
             return fallback;
         }
     }
@@ -293,12 +293,17 @@ public partial class MainViewModel : ObservableObject
     private static string? BuildEscortShieldMarkerImage()
     {
         const int markerSize = 64;
-        var outlineColor = System.Windows.Media.Color.FromRgb(0, 86, 153);
-        var fillColor = System.Windows.Media.Color.FromRgb(241, 248, 255);
+        var outlineColor = Color.FromRgb(0, 86, 153);
+        var fillColor = Color.FromRgb(241, 248, 255);
         const double viewBoxSize = 100d;
-        const double viewBoxCenter = 50d;
-        const double innerInsetScale = 0.86d;
         var baseScale = markerSize / viewBoxSize;
+
+        var outputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CommandDashboard");
+        Directory.CreateDirectory(outputDirectory);
+        var outputPath = Path.Combine(outputDirectory, "escort-shield-custom.png");
+
+        if (File.Exists(outputPath))
+            return outputPath;
 
         var outlineBrush = new SolidColorBrush(outlineColor);
         outlineBrush.Freeze();
@@ -306,15 +311,13 @@ public partial class MainViewModel : ObservableObject
         var fillBrush = new SolidColorBrush(fillColor);
         fillBrush.Freeze();
 
-        const string shieldPathData = "M50 5 L90 20 V45 C90 72 72 92 50 98 C28 92 10 72 10 45 V20 Z";
-        var geometryConverter = TypeDescriptor.GetConverter(typeof(System.Windows.Media.Geometry));
-        var outerShieldGeometry = geometryConverter.ConvertFromInvariantString(shieldPathData) as System.Windows.Media.Geometry
-            ?? throw new InvalidOperationException("Unable to parse escort shield path.");
+        var outerShieldGeometry = CreateShieldGeometry();
         outerShieldGeometry.Transform = new MatrixTransform(baseScale, 0, 0, baseScale, 0, 0);
         outerShieldGeometry.Freeze();
 
-        var innerShieldGeometry = geometryConverter.ConvertFromInvariantString(shieldPathData) as System.Windows.Media.Geometry
-            ?? throw new InvalidOperationException("Unable to parse escort shield path.");
+        var innerShieldGeometry = CreateShieldGeometry();
+        const double innerInsetScale = 0.86d;
+        const double viewBoxCenter = 50d;
         var innerScale = baseScale * innerInsetScale;
         var innerOffset = (viewBoxCenter * (1 - innerInsetScale)) * baseScale;
         innerShieldGeometry.Transform = new MatrixTransform(innerScale, 0, 0, innerScale, innerOffset, innerOffset);
@@ -330,10 +333,6 @@ public partial class MainViewModel : ObservableObject
         var bitmap = new RenderTargetBitmap(markerSize, markerSize, 96, 96, PixelFormats.Pbgra32);
         bitmap.Render(visual);
 
-        var outputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CommandDashboard");
-        Directory.CreateDirectory(outputDirectory);
-        var outputPath = Path.Combine(outputDirectory, "escort-shield-custom.png");
-
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using (var stream = File.Create(outputPath))
@@ -344,56 +343,27 @@ public partial class MainViewModel : ObservableObject
         return outputPath;
     }
 
-    private void UpdateVipRelativeMetrics(FieldUnitStatus unit)
+    private static PathGeometry CreateShieldGeometry()
     {
-        if (unit.Role != UnitRole.Vip)
-            return;
+        var start = new WpfPoint(50, 6);
+        var figure = new PathFigure
+        {
+            StartPoint = start,
+            IsClosed = true,
+            IsFilled = true
+        };
 
-        if (string.IsNullOrWhiteSpace(EscortUnit.DisplayName))
-            return;
+        figure.Segments.Add(new BezierSegment(new WpfPoint(62, 12), new WpfPoint(76, 16), new WpfPoint(88, 18), true));
+        figure.Segments.Add(new WpfLineSegment(new WpfPoint(88, 44), true));
+        figure.Segments.Add(new BezierSegment(new WpfPoint(88, 69), new WpfPoint(73, 88), new WpfPoint(50, 97), true));
+        figure.Segments.Add(new BezierSegment(new WpfPoint(27, 88), new WpfPoint(12, 69), new WpfPoint(12, 44), true));
+        figure.Segments.Add(new WpfLineSegment(new WpfPoint(12, 18), true));
+        figure.Segments.Add(new BezierSegment(new WpfPoint(24, 16), new WpfPoint(38, 12), new WpfPoint(50, 6), true));
 
-        var distanceMeters = CalculateDistanceMeters(unit.Latitude, unit.Longitude, EscortUnit.Latitude, EscortUnit.Longitude);
-        if (double.IsNaN(distanceMeters) || double.IsInfinity(distanceMeters))
-            return;
-
-        unit.DistanceMeters = distanceMeters;
-        unit.DirectionToEscort = ComputeDirectionCardinal(unit.Latitude, unit.Longitude, EscortUnit.Latitude, EscortUnit.Longitude);
+        var geometry = new PathGeometry();
+        geometry.Figures.Add(figure);
+        return geometry;
     }
-
-    private static double CalculateDistanceMeters(double latitude1, double longitude1, double latitude2, double longitude2)
-    {
-        const double earthRadiusMeters = 6_371_000;
-        var latitudeDelta = DegreesToRadians(latitude2 - latitude1);
-        var longitudeDelta = DegreesToRadians(longitude2 - longitude1);
-        var latitude1Radians = DegreesToRadians(latitude1);
-        var latitude2Radians = DegreesToRadians(latitude2);
-
-        var haversine = Math.Sin(latitudeDelta / 2) * Math.Sin(latitudeDelta / 2)
-            + Math.Cos(latitude1Radians) * Math.Cos(latitude2Radians)
-            * Math.Sin(longitudeDelta / 2) * Math.Sin(longitudeDelta / 2);
-
-        var centralAngle = 2 * Math.Atan2(Math.Sqrt(haversine), Math.Sqrt(1 - haversine));
-        return earthRadiusMeters * centralAngle;
-    }
-
-    private static string ComputeDirectionCardinal(double fromLatitude, double fromLongitude, double toLatitude, double toLongitude)
-    {
-        var phi1 = DegreesToRadians(fromLatitude);
-        var phi2 = DegreesToRadians(toLatitude);
-        var deltaLambda = DegreesToRadians(toLongitude - fromLongitude);
-
-        var y = Math.Sin(deltaLambda) * Math.Cos(phi2);
-        var x = Math.Cos(phi1) * Math.Sin(phi2) - Math.Sin(phi1) * Math.Cos(phi2) * Math.Cos(deltaLambda);
-        var bearing = (RadiansToDegrees(Math.Atan2(y, x)) + 360) % 360;
-
-        var cardinals = new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
-        var index = (int)Math.Round(bearing / 45.0, MidpointRounding.AwayFromZero) % 8;
-        return cardinals[index];
-    }
-
-    private static double DegreesToRadians(double degrees) => degrees * Math.PI / 180.0;
-
-    private static double RadiansToDegrees(double radians) => radians * 180.0 / Math.PI;
 
     public void ApplyFieldMessage(FieldMessageEnvelope envelope)
     {
@@ -532,7 +502,7 @@ public partial class MainViewModel : ObservableObject
                         break;
 
                     var unit = ResolveUnit(envelope.DeviceId);
-                    if (Enum.TryParse<UnitStatus>(payload.Status, ignoreCase: true, out var status))
+                    if (TryParseVipStatus(payload.Status, out var status))
                     {
                         unit.Status = status;
                     }
@@ -559,7 +529,7 @@ public partial class MainViewModel : ObservableObject
                     unit.Latitude = payload.Latitude;
                     unit.Longitude = payload.Longitude;
 
-                    if (Enum.TryParse<UnitStatus>(payload.Status, ignoreCase: true, out var telemetryStatus))
+                    if (TryParseVipStatus(payload.Status, out var telemetryStatus))
                     {
                         unit.Status = telemetryStatus;
                     }
@@ -757,7 +727,7 @@ public partial class MainViewModel : ObservableObject
                     VipPanelUnits.Add(panelUnit);
                 }
 
-                if (Enum.TryParse(statusText, true, out UnitStatus parsedStatus))
+                if (TryParseVipStatus(statusText, out var parsedStatus))
                 {
                     panelUnit.Status = parsedStatus;
                 }
@@ -821,6 +791,11 @@ public partial class MainViewModel : ObservableObject
         if (attributes.TryGetValue(key, out var value))
             return value;
         return null;
+    }
+
+    private static bool TryParseVipStatus(string? rawStatus, out UnitStatus status)
+    {
+        return Enum.TryParse(rawStatus, ignoreCase: true, out status);
     }
 
     private void EnsureFieldDeviceRegistered(string deviceId, UnitRole fallbackRole)

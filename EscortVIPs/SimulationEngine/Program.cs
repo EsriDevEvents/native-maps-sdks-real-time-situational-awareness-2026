@@ -23,7 +23,7 @@ internal sealed class SimulationEngineHost
     private const string EndpointPrefix = "http://127.0.0.1:8775/ws/";
     private const string RouteLayerName = "CampusRoute";
     private static readonly string RouteGeodatabasePath = ResolveRouteGeodatabasePath();
-    private const int TickMilliseconds = 250;
+    private const int TickMilliseconds = 700;
     private const double EscortRouteSpeedMetersPerSecond = 1.35;
     private const double EscortMinRouteSpeedMetersPerSecond = 0.0;
     private const double EscortMaxRouteSpeedMetersPerSecond = 2.1;
@@ -35,10 +35,10 @@ internal sealed class SimulationEngineHost
     private const double VipSpeedSpreadMetersPerSecond = 0.12;
     private const double VipInitialSpacingMeters = 2.0;
     private const double VipMaxEscortRouteGapMeters = 22.0;
-    private const double VipWanderMaxOffsetMeters = 2.4;
-    private const double VipWanderResponsePerSecond = 0.65;
-    private const double VipWanderRetargetMinSeconds = 3.2;
-    private const double VipWanderRetargetMaxSeconds = 6.8;
+    private const double VipWanderMaxOffsetMeters = 1.2;
+    private const double VipWanderResponsePerSecond = 0.35;
+    private const double VipWanderRetargetMinSeconds = 5.0;
+    private const double VipWanderRetargetMaxSeconds = 9.0;
 
     private readonly HttpListener listener = new();
     private readonly ConcurrentDictionary<string, WebSocket> clients = new(StringComparer.OrdinalIgnoreCase);
@@ -210,25 +210,6 @@ internal sealed class SimulationEngineHost
                     var current = vipStateByDevice.GetOrAdd(envelope.DeviceId, _ => new VipState());
                     current.PreviousStatus = current.Status;
                     current.Status = statusPayload.Status;
-
-                    if (IsTransitionToIn(current.PreviousStatus, statusPayload.Status)
-                        && vipSpeedDirectiveByDevice.TryRemove(envelope.DeviceId, out var priorDirective)
-                        && priorDirective != VipSpeedDirective.Normal)
-                    {
-                        var resumePayload = new VipControlPayload(
-                            DeviceId: envelope.DeviceId,
-                            Signal: "RESUME",
-                            Message: "Escort reached. Resume normal speed.",
-                            IsActive: false);
-
-                        var resumeEnvelope = MessageSerializer.CreateEnvelope(
-                            MessageTypes.VipControl,
-                            SessionId,
-                            "simulation-engine",
-                            resumePayload);
-
-                        await SendToDeviceAsync(envelope.DeviceId, resumeEnvelope, cancellationToken).ConfigureAwait(false);
-                    }
                 }
             }
         }
@@ -640,7 +621,7 @@ internal sealed class SimulationEngineHost
             if (mainWindowLengthMeters <= 1)
                 continue;
 
-            windows.Add(new ExcursionRouteWindow(index, excursionRoute, excursionLengthMeters, mainStartDistanceMeters, mainEndDistanceMeters, mainWindowLengthMeters));
+            windows.Add(new ExcursionRouteWindow(index, excursionRoute, excursionLengthMeters, mainStartDistanceMeters, mainWindowLengthMeters));
         }
 
         return windows.OrderBy(window => window.MainStartDistanceMeters).ToList();
@@ -893,14 +874,6 @@ internal sealed class SimulationEngineHost
 
     private static double RadiansToDegrees(double radians) => radians * 180.0 / Math.PI;
 
-    private static bool IsTransitionToIn(string? previousStatus, string? currentStatus)
-    {
-        var previous = previousStatus?.Trim();
-        var current = currentStatus?.Trim();
-        return !string.Equals(previous, "In", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(current, "In", StringComparison.OrdinalIgnoreCase);
-    }
-
     private static string ResolveRouteGeodatabasePath()
     {
         var packagedPath = Path.Combine(AppContext.BaseDirectory, "campus-routes.geodatabase");
@@ -949,6 +922,5 @@ internal sealed class SimulationEngineHost
         Polyline ExcursionRoute,
         double ExcursionLengthMeters,
         double MainStartDistanceMeters,
-        double MainEndDistanceMeters,
         double MainWindowLengthMeters);
 }

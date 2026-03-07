@@ -3,7 +3,7 @@ namespace CommandDashboard.Models;
 public enum UnitStatus
 {
     In,
-    Danger,
+    Warning,
     Out,
     Unknown
 }

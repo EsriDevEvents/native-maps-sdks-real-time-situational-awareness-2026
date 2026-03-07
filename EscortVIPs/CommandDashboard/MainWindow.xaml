@@ -311,7 +311,7 @@
                                                             <Setter Property="Background" Value="{StaticResource CalciteStatusSuccessBrush}" />
                                                             <Setter Property="BorderBrush" Value="{StaticResource CalciteStatusSuccessHoverBrush}" />
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:UnitStatus.Danger}">
+                                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:UnitStatus.Warning}">
                                                             <Setter Property="Background" Value="{StaticResource CalciteStatusWarningBrush}" />
                                                             <Setter Property="BorderBrush" Value="{StaticResource CalciteStatusWarningHoverBrush}" />
                                                         </DataTrigger>
@@ -351,7 +351,7 @@
                                                                 <DataTrigger Binding="{Binding Status}" Value="{x:Static models:UnitStatus.In}">
                                                                     <Setter Property="Background" Value="{StaticResource CalciteStatusSuccessBrush}" />
                                                                 </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:UnitStatus.Danger}">
+                                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:UnitStatus.Warning}">
                                                                     <Setter Property="Background" Value="{StaticResource CalciteStatusWarningBrush}" />
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding IsOutOfRange}" Value="True">

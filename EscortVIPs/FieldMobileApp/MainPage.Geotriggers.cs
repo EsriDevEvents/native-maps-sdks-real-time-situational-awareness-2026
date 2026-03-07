@@ -10,7 +10,6 @@ public partial class MainPage
 {
     private const double EscortPerimeterRadiusMeters = 25;
     private const double WarningRingRadiusMeters = EscortPerimeterRadiusMeters * 0.75;
-    private static readonly TimeSpan VipStatusTransitionMinimumInterval = TimeSpan.FromSeconds(1.5);
 
     private readonly SemaphoreSlim escortFenceUpdateGate = new(1, 1);
     private FeatureCollectionTable? escortPerimeterFenceTable;
@@ -20,8 +19,6 @@ public partial class MainPage
     private bool? vipInsideEscortPerimeter;
     private bool? vipInsideWarningRing;
     private string? vipStatus;
-    private long geotriggerEventCount;
-    private DateTimeOffset lastVipStatusChangeUtc = DateTimeOffset.MinValue;
 
     private async Task EnsurePerimeterMonitorsAsync(string role)
     {
@@ -88,7 +85,7 @@ public partial class MainPage
         else
             vipInsideEscortPerimeter = isInsideFence.Value;
 
-        await ApplyVipStatusFromRingsAsync(allowThrottle: true, countGeotriggerEvent: true);
+        await ApplyVipStatusFromRingsAsync();
     }
 
     private string? GetVipStatusFromRings()
@@ -99,7 +96,7 @@ public partial class MainPage
         if (!vipInsideEscortPerimeter.Value)
             return "Out";
 
-        return vipInsideWarningRing.Value ? "In" : "Danger";
+        return vipInsideWarningRing.Value ? "In" : "Warning";
     }
 
     private async Task UpdateEscortFenceAsync(double latitude, double longitude)
@@ -138,16 +135,16 @@ public partial class MainPage
         if (!string.Equals(configuredRole, "VIP", StringComparison.OrdinalIgnoreCase))
             return;
 
-        await ApplyVipStatusFromRingsAsync(allowThrottle: false, countGeotriggerEvent: false);
+        await ApplyVipStatusFromRingsAsync();
     }
 
-    private async Task ApplyVipStatusFromRingsAsync(bool allowThrottle, bool countGeotriggerEvent)
+    private async Task ApplyVipStatusFromRingsAsync()
     {
         var nextStatus = GetVipStatusFromRings();
         if (nextStatus is null)
             return;
 
-        await ApplyVipStatusAsync(nextStatus, allowThrottle, countGeotriggerEvent);
+        await ApplyVipStatusAsync(nextStatus);
     }
 
     private static GeotriggerMonitor CreateFenceMonitor(
@@ -171,25 +168,14 @@ public partial class MainPage
         return monitor;
     }
 
-    private async Task ApplyVipStatusAsync(string nextStatus, bool allowThrottle, bool countGeotriggerEvent)
+    private async Task ApplyVipStatusAsync(string nextStatus)
     {
         if (string.IsNullOrWhiteSpace(nextStatus))
             return;
 
         var changed = !string.Equals(vipStatus, nextStatus, StringComparison.OrdinalIgnoreCase);
-        if (changed && allowThrottle && DateTimeOffset.UtcNow - lastVipStatusChangeUtc < VipStatusTransitionMinimumInterval)
-            return;
 
         vipStatus = nextStatus;
-        if (changed)
-        {
-            lastVipStatusChangeUtc = DateTimeOffset.UtcNow;
-        }
-
-        if (countGeotriggerEvent)
-        {
-            Interlocked.Increment(ref geotriggerEventCount);
-        }
 
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
@@ -199,6 +185,18 @@ public partial class MainPage
         if (changed)
         {
             await PublishVipStatusAsync(nextStatus);
+
+            if (vipDirectiveActive
+                && ShouldAutoResumeFromStatus(nextStatus)
+                && (string.Equals(vipDirectiveSignal, "STOP", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(vipDirectiveSignal, "HURRY", StringComparison.OrdinalIgnoreCase)))
+            {
+                await PublishVipDirectiveResetAsync();
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UpdateVipCommandBanner("RESUME", "Escort reached. Resume normal pace.", isActive: false);
+                });
+            }
         }
     }
 
@@ -229,5 +227,48 @@ public partial class MainPage
                 LogDiagnostic("PublishVipStatusAsync to simulation engine skipped because simulation websocket is not open.");
             }
         }
+    }
+
+    private async Task PublishVipDirectiveResetAsync()
+    {
+        var deviceId = connectedDeviceId;
+        var sessionId = connectedSessionId;
+        if (string.IsNullOrWhiteSpace(deviceId) || string.IsNullOrWhiteSpace(sessionId))
+            return;
+
+        var resetEnvelope = MessageSerializer.CreateEnvelope(
+            MessageTypes.VipControl,
+            sessionId,
+            deviceId,
+            new VipControlPayload(
+                DeviceId: deviceId,
+                Signal: "RESUME",
+                Message: "Escort reached. Resume normal pace.",
+                IsActive: false));
+
+        var sent = await SendAsync(resetEnvelope, receiveCts?.Token ?? CancellationToken.None);
+        if (!sent)
+        {
+            LogDiagnostic("PublishVipDirectiveResetAsync skipped because websocket is not open.");
+        }
+
+        if (simulatedMode)
+        {
+            var simulationSent = await SendSimulationAsync(resetEnvelope, receiveCts?.Token ?? CancellationToken.None);
+            if (!simulationSent)
+            {
+                LogDiagnostic("PublishVipDirectiveResetAsync to simulation engine skipped because simulation websocket is not open.");
+            }
+        }
+    }
+
+    private static bool ShouldAutoResumeFromStatus(string? status)
+    {
+        var normalized = status?.Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+            return false;
+
+        // Keep HOLD/HURRY active through warning-edge states; clear only after full rejoin.
+        return string.Equals(normalized, "In", StringComparison.OrdinalIgnoreCase);
     }
 }

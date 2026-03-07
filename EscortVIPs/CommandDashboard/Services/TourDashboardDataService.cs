@@ -3,7 +3,7 @@ using CommandDashboard.Models;
 
 namespace CommandDashboard.Services;
 
-public sealed class MockDashboardDataService : IDashboardDataService
+public sealed class TourDashboardDataService : IDashboardDataService
 {
     private readonly Random random = new();
     private const double BaseLatitude = 34.0556;

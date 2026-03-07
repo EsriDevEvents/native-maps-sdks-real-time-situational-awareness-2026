@@ -6,7 +6,7 @@ namespace FieldMobileApp.Location;
 
 public sealed partial class SimulationLocationDataSource : LocationDataSource
 {
-    private const double SimulatedHorizontalAccuracyMeters = 1.5;
+    private const double SimulatedHorizontalAccuracyMeters = 0.8;
     private const double BaseLatitude = 34.0556;
     private const double BaseLongitude = -117.1825;
 

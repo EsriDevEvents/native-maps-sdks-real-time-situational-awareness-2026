@@ -34,6 +34,8 @@ public partial class MainPage
     private string displayedDirection = "-";
     private string? lastRenderedDetailText;
     private bool escortVipDynamicEntityInitialized;
+    private bool vipDirectiveActive;
+    private string? vipDirectiveSignal;
 
     private bool IsEscortRole() => string.Equals(configuredRole, "Escort", StringComparison.OrdinalIgnoreCase);
 
@@ -59,10 +61,8 @@ public partial class MainPage
                 ? "You are outside the security perimeter"
                 : "OUT";
         }
-        else if (string.Equals(normalized, "Near", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(normalized, "Edge", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(normalized, "Warning", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(normalized, "Danger", StringComparison.OrdinalIgnoreCase))
+        else if (string.Equals(normalized, "Warning", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "WARNING", StringComparison.OrdinalIgnoreCase))
         {
             BackgroundColor = StatusWarningColor;
             RoleStateLabel.Text = IsVipRole()
@@ -341,8 +341,7 @@ public partial class MainPage
         }
 
         var warningCount = activeStatuses.Count(status => string.Equals(status, "WARNING", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(status, "Near", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(status, "Danger", StringComparison.OrdinalIgnoreCase));
+            || string.Equals(status, "Warning", StringComparison.OrdinalIgnoreCase));
         if (warningCount > 0)
         {
             EscortOverallStatusBanner.BackgroundColor = StatusWarningColor;
@@ -477,10 +476,7 @@ public partial class MainPage
         if (string.Equals(status, "In", StringComparison.OrdinalIgnoreCase))
             return StatusInColor;
 
-        if (string.Equals(status, "Near", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(status, "Danger", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(status, "Warning", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(status, "WARN", StringComparison.OrdinalIgnoreCase)
+        if (string.Equals(status, "Warning", StringComparison.OrdinalIgnoreCase)
             || string.Equals(status, "WARNING", StringComparison.OrdinalIgnoreCase))
             return StatusWarningColor;
 
@@ -496,9 +492,8 @@ public partial class MainPage
             return "Unknown";
 
         var normalizedStatus = status.Trim();
-        if (string.Equals(normalizedStatus, "Near", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(normalizedStatus, "Danger", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(normalizedStatus, "Warning", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(normalizedStatus, "Warning", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalizedStatus, "WARNING", StringComparison.OrdinalIgnoreCase))
         {
             return "WARNING";
         }
@@ -520,6 +515,8 @@ public partial class MainPage
         if (!IsVipRole())
         {
             VipCommandBanner.IsVisible = false;
+            vipDirectiveActive = false;
+            vipDirectiveSignal = null;
             return;
         }
 
@@ -527,6 +524,8 @@ public partial class MainPage
         {
             VipCommandBanner.IsVisible = false;
             VipCommandLabel.Text = string.Empty;
+            vipDirectiveActive = false;
+            vipDirectiveSignal = null;
             return;
         }
 
@@ -554,6 +553,8 @@ public partial class MainPage
             VipCommandLabel.Text = $"✅ {normalizedMessage}";
         }
 
+        vipDirectiveActive = true;
+        vipDirectiveSignal = normalizedSignal;
         VipCommandBanner.IsVisible = true;
     }
 

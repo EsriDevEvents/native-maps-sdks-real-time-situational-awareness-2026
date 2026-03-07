@@ -43,7 +43,7 @@ public partial class FieldUnitStatus : ObservableObject
     {
         get
         {
-            var baseStatus = Status == UnitStatus.Danger ? "Warning" : Status.ToString();
+            var baseStatus = Status.ToString();
 
             if (string.Equals(OperatorControl, "STOP", StringComparison.OrdinalIgnoreCase))
                 return $"{baseStatus} (Hold)";

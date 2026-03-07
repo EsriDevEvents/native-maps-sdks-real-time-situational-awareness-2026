@@ -5,7 +5,7 @@ using Esri.ArcGISRuntime.RealTime;
 
 namespace CommandDashboard.RealTime;
 
-public sealed class MockDynamicEntityDataSource : DynamicEntityDataSource
+public sealed class TourDynamicEntityDataSource : DynamicEntityDataSource
 {
     public const string EntityIdFieldName = "trackId";
 
