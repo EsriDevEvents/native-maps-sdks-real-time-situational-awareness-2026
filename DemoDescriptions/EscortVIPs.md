@@ -1,51 +1,74 @@
-# EscortVIPs Demo Description
+# EscortVIPs Scenario Brief
 
-## Overview
+## Scenario
 
-EscortVIPs demonstrates a multi-app realtime situational awareness workflow that combines Geotriggers and Dynamic Entities across three running components:
+A team of VIP scientists is attending a conference on the Esri campus. While they are here, the group will be taken on a walking tour of the campus and, because of the profile of these scientists, the tour requires a security escort. We want to ensure the safety of the VIPs while also providing a seamless experience for the VIPs, security escort, and campus security.
 
-- Simulation engine (assigned locations, route snapshots, control messages)
-- Field mobile apps (escort and VIP clients)
-- Command dashboard (operational view and command controls)
+## Architecture
 
-## Multi-App Architecture
+```mermaid
+flowchart LR
+subgraph DASHBOARD[Dashboard]
+    DASH[Command Dashboard]
+end
 
-The apps communicate over websocket message envelopes and shared payload types. This keeps transport and app-specific behavior decoupled while allowing role-specific clients to react to the same realtime stream.
+subgraph FIELD[Field Devices]
+    ESC[Escort]
+    VIP["VIPs (multiple)"]
+end
+
+DASH -->|Guidance commands| FIELD
+FIELD -->|Location / Status updates| DASH
+
+ESC -->|Location / Status updates| VIP
+VIP --> ESC
+```
 
 ## How it Works
 
 The end-to-end flow follows this pipeline:
 
-1. Field apps register and connect to websocket endpoints.
-2. The simulation engine publishes escort/VIP assigned locations and route snapshots.
-3. Field apps ingest location updates and evaluate escort perimeter geotriggers.
-4. Field apps publish VIP telemetry and status transitions.
-5. The dashboard ingests current unit state and republishes dynamic entities for map visualization.
+1. Escort and VIP field roles publish live position updates.
+2. VIP evaluates geotrigger proximity relative to Escort movement.
+3. VIP state transitions are classified as In, Danger, or Out.
+4. The dashboard ingests field updates and presents a single live map view.
+5. The dashboard can send simple guidance actions back to field roles.
 
-## Runtime Behavior
+## Capabilities and Behaviors
 
-- VIP and escort units are simulated in coordinated motion.
-- Geotrigger ring notifications determine VIP status transitions relative to escort perimeter rules.
-- Dynamic entity layers on both field and dashboard views render moving entities and current state.
-- Dashboard commands can influence VIP behavior through control messages.
+- The field network is peer-to-peer: Escort and VIP devices exchange updates directly.
+- VIP devices share location and status data over the field network to both Dashboard and Escort.
+- Escort devices share location data over the field network to both Dashboard and VIP devices.
+- The Dashboard monitors the tour in realtime.
+- The Dashboard can provide guidance commands to VIP devices.
+- VIP devices send notifications when a VIP is out of, or nearing the edge of, the escort security perimeter.
+- Escort includes a VIP roster view with current status per VIP (`In`, `Warning`, `Out`).
+- VIP devices are the authoritative source of each VIP status.
+- VIP status is computed with geotriggers using a buffered Escort location as a moving fence.
+- Escort uses a Dynamic Entity data source to maintain VIP location/state and roster status.
+- Dashboard uses a Dynamic Entity data source to maintain both VIP and Escort entities on the map and in a UI panel.
+- Dashboard can query and display filtered subsets of VIPs.
 
-## Key Implementation References
+## Demo Script
 
-- [Simulation engine lifecycle and loops](../EscortVIPs/SimulationEngine/Program.cs#L67)
-- [Per-tick assigned location publishing](../EscortVIPs/SimulationEngine/Program.cs#L284)
-- [Field app location source startup](../EscortVIPs/FieldMobileApp/MainPage.Location.cs#L13)
-- [Field app perimeter geotrigger setup](../EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L26)
-- [Field app ring notification handling](../EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L74)
-- [Field app VIP status publication](../EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L205)
-- [Field app dynamic entity source wiring](../EscortVIPs/FieldMobileApp/MainPage.StatusAndDynamics.cs#L99)
-- [Dashboard view model realtime publish flow](../EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L226)
-- [Dashboard per-VIP dynamic publish](../EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L239)
-- [Shared message envelope and payload contracts](../EscortVIPs/CommandMessaging/FieldMessageEnvelope.cs#L5)
+“This demo shows how we use Geotriggers and Dynamic Entities together in a real-time situational awareness workflow.
 
-## Why this Pattern Matters
+Our scenario: a team of VIP scientists is attending a conference on the Esri campus. While they are here, the group will be taken on a walking tour of the campus and, because of the profile of these scientists, the tour requires a security escort. We want to ensure the safety of the VIPs while also providing a seamless experience for the VIPs, security escort, and campus security.
 
-EscortVIPs demonstrates how Geotriggers and Dynamic Entities complement each other in a production-like, multi-client system: geotriggers provide actionable spatial event logic, while dynamic entities provide continuous movement context and map-centric operational visibility.
+To facilitate this, we built two applications, a field app for the VIPs and security escort, and a command and control dashboard to monitor the tour in real-time. As the tour moves, field devices share live location and status updates across a peer-to-peer field network (simulated in this case) to each other and to the dashboard.
 
-## Reset
+Each VIP scientist will carry a mobile device running our field app with a VIP role. The VIP app:
+- Evaluate the VIP's proximity to the escort, classifying their status as `Inside`, `Outside`, or `Close to the Edge` of a moving perimeter around the escort.
+- Sends a notification to the VIP when they are nearing or outside the escort perimeter.
+- Shares status changes and location updates with both the escort and the dashboard.
+Each VIP device uses a pair of geotriggers to evaluate the VIPs proximity to a moving fence built around a buffered escort location. If a VIP nears or crosses that perimeter, the device immediately raises a notification on the device and publishes the VIP status on the network.
 
-- Run task: `Stop EscortVIPs Demo Stack`
+The security personnel run our field app with the escort role. The escort app:
+- Shares its location with VIP devices and the dashboard.
+- Maintains a roster of VIPs with their current status.
+The escort app uses a custom DynamicEntityDataSource to provide the live operating picture of VIP statuses.
+
+Campus security monitors the tour in real-time using our Dashboard app. The Dashboard:
+- ingests VIP and Escort location and status updates from the field to populate a custom DynamicEntityDataSource that is used to maintain current status and location.
+- can send simple guidance commands back to VIP devices.
+- can query and display filtered subsets of VIPs, such as showing only VIPs that are in a `Warning` state.
