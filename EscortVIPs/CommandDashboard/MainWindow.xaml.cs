@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private bool initialMainRouteViewpointApplied;
     private double? lastEscortCenterLatitude;
     private double? lastEscortCenterLongitude;
+    private string? trackedVipDeviceId;
 
     public MainWindow()
     {
@@ -134,9 +135,16 @@ public partial class MainWindow : Window
                     unitLabelOverlay.Graphics.Remove(labelGraphic);
                     unitLabelGraphicsById.Remove(unit.DisplayName);
                 }
+
+                if (!string.IsNullOrWhiteSpace(trackedVipDeviceId)
+                    && string.Equals(trackedVipDeviceId, unit.DisplayName, StringComparison.OrdinalIgnoreCase))
+                {
+                    trackedVipDeviceId = null;
+                }
             }
         }
 
+        ApplyVipTrackDisplay();
         UpdateSafetyPolygon();
     }
 
@@ -344,8 +352,8 @@ public partial class MainWindow : Window
         var warningRingGeometry = GeometryEngine.Difference(outerBufferedGeometry, innerBufferedGeometry) ?? outerBufferedGeometry;
 
         var fillColor = viewModel.IsAnyVipOut
-            ? System.Drawing.Color.FromArgb(76, 216, 48, 32)
-            : System.Drawing.Color.FromArgb(76, 53, 172, 70);
+            ? System.Drawing.Color.FromArgb(48, 216, 48, 32)
+            : System.Drawing.Color.FromArgb(48, 53, 172, 70);
 
         var outlineColor = viewModel.IsAnyVipOut
             ? System.Drawing.Color.FromArgb(204, 216, 48, 32)
@@ -358,7 +366,7 @@ public partial class MainWindow : Window
 
         var warningRingSymbol = new SimpleFillSymbol(
             SimpleFillSymbolStyle.Solid,
-            System.Drawing.Color.FromArgb(96, 255, 168, 0),
+            System.Drawing.Color.FromArgb(56, 255, 168, 0),
             new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, System.Drawing.Color.FromArgb(0, 255, 140, 0), 1.0));
 
         if (safetyGraphic is null)
@@ -420,11 +428,13 @@ public partial class MainWindow : Window
         var textSymbol = new TextSymbol(
             labelText,
             foregroundColor,
-            14,
+            18,
             Esri.ArcGISRuntime.Symbology.HorizontalAlignment.Left,
             Esri.ArcGISRuntime.Symbology.VerticalAlignment.Bottom)
         {
-            OffsetY = 10
+            OffsetY = 12,
+            HaloColor = System.Drawing.Color.FromArgb(210, 255, 255, 255),
+            HaloWidth = 2
         };
 
         if (unitLabelGraphicsById.TryGetValue(id, out var existingGraphic))
@@ -463,6 +473,70 @@ public partial class MainWindow : Window
             unit.OperatorControl = "HURRY";
 
         await fieldMessagingHost.SendVipHurryUpAsync(vipDeviceId);
+    }
+
+    private void OnVipTrackToggleClick(object sender, RoutedEventArgs e)
+    {
+        var vipDeviceId = ResolveVipDeviceIdFromSender(sender);
+        if (string.IsNullOrWhiteSpace(vipDeviceId))
+            return;
+
+        trackedVipDeviceId = string.Equals(trackedVipDeviceId, vipDeviceId, StringComparison.OrdinalIgnoreCase)
+            ? null
+            : vipDeviceId;
+
+        ApplyVipTrackDisplay();
+    }
+
+    private void ApplyVipTrackDisplay()
+    {
+        var selectedVip = trackedVipDeviceId;
+        foreach (var vipUnit in viewModel.VipUnits)
+        {
+            vipUnit.IsTrackEnabled = !string.IsNullOrWhiteSpace(selectedVip)
+                && string.Equals(vipUnit.DisplayName, selectedVip, StringComparison.OrdinalIgnoreCase);
+        }
+
+        var layer = viewModel.DynamicEntityLayer;
+        if (layer is null)
+            return;
+
+        var trackDisplay = layer.TrackDisplayProperties;
+
+        if (string.IsNullOrWhiteSpace(selectedVip))
+        {
+            trackDisplay.ShowTrackLine = false;
+            trackDisplay.ShowPreviousObservations = false;
+            return;
+        }
+
+        var selectedTrackSymbol = new SimpleLineSymbol(
+            SimpleLineSymbolStyle.Dot,
+            System.Drawing.Color.FromArgb(255, 30, 123, 234),
+            3.5);
+
+        var hiddenTrackSymbol = new SimpleLineSymbol(
+            SimpleLineSymbolStyle.Solid,
+            System.Drawing.Color.FromArgb(0, 0, 0, 0),
+            0.1);
+
+        var trackRenderer = new UniqueValueRenderer(
+            fieldNames: ["trackId"],
+            uniqueValues:
+            [
+                new UniqueValue(
+                    selectedVip,
+                    selectedVip,
+                    selectedTrackSymbol,
+                    selectedVip)
+            ],
+            defaultLabel: "Hidden",
+            defaultSymbol: hiddenTrackSymbol);
+
+        trackDisplay.ShowTrackLine = true;
+        trackDisplay.ShowPreviousObservations = false;
+        trackDisplay.MaximumObservations = 15_000;
+        trackDisplay.TrackLineRenderer = trackRenderer;
     }
 
     private static string? ResolveVipDeviceIdFromSender(object sender)

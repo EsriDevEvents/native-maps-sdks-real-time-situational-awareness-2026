@@ -37,6 +37,9 @@ public partial class FieldUnitStatus : ObservableObject
     [ObservableProperty]
     private string? operatorControl;
 
+    [ObservableProperty]
+    private bool isTrackEnabled;
+
     public bool IsOutOfRange => Status == UnitStatus.Out;
 
     public string StatusDisplayText
