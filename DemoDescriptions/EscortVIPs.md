@@ -68,7 +68,7 @@ The security personnel run our field app with the escort role. The escort app:
 - Maintains a roster of VIPs with their current status.
 The escort app uses a custom DynamicEntityDataSource to provide the live operating picture of VIP statuses.
 
-Campus security monitors the tour in real-time using our Dashboard app. The Dashboard:
+Campus security personnel monitor the tour in real-time using our Dashboard app. The Dashboard:
 - ingests VIP and Escort location and status updates from the field to populate a custom DynamicEntityDataSource that is used to maintain current status and location.
 - can send simple guidance commands back to VIP devices.
 - can query and display filtered subsets of VIPs, such as showing only VIPs that are in a `Warning` state.

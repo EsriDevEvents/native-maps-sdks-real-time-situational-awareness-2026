@@ -226,7 +226,7 @@ public partial class MainPage
 
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        ApplyAssignedLocationPayload(payload, role, deviceId);
+                        ApplySimulationAssignedLocationPayload(payload);
                     });
 
                     await RelayAssignedLocationToDashboardAsync(payload, role, deviceId, cancellationToken);

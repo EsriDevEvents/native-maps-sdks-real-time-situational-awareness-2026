@@ -1,4 +1,3 @@
-using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Location;
 using FieldMobileApp.Location;
 
@@ -40,12 +39,6 @@ public partial class MainPage
         lock (latestLocationGate)
         {
             latestLocation = runtimeLocation;
-        }
-
-        if (string.Equals(configuredRole, "VIP", StringComparison.OrdinalIgnoreCase)
-            && (!vipInsideEscortPerimeter.HasValue || !vipInsideWarningRing.HasValue))
-        {
-            _ = SyncVipStatusAsync();
         }
     }
 

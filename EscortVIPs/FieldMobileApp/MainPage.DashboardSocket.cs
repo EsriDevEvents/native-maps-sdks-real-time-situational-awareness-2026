@@ -61,25 +61,6 @@ public partial class MainPage
 
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    if (envelope.Type == MessageTypes.AssignedLocation)
-                    {
-                        var assigned = MessageSerializer.DeserializePayload<AssignedLocationPayload>(envelope);
-                        if (assigned is not null
-                            && string.Equals(assigned.DeviceId, deviceId, StringComparison.OrdinalIgnoreCase))
-                        {
-                            ActiveSimulationLocationDataSource?.SetAssignedLocation(assigned.Latitude, assigned.Longitude);
-                        }
-                    }
-
-                    if (role == "VIP" && envelope.Type == MessageTypes.AssignedLocation)
-                    {
-                        var payload = MessageSerializer.DeserializePayload<AssignedLocationPayload>(envelope);
-                        if (payload is null || !string.Equals(payload.DeviceId, deviceId, StringComparison.OrdinalIgnoreCase))
-                            return;
-                        ApplyAssignedLocationPayload(payload, role, deviceId);
-                        return;
-                    }
-
                     if (role == "VIP" && envelope.Type == MessageTypes.EscortPosition)
                     {
                         var payload = MessageSerializer.DeserializePayload<EscortPositionPayload>(envelope);
@@ -148,12 +129,16 @@ public partial class MainPage
         await SendAsync(envelope, receiveCts?.Token ?? CancellationToken.None);
     }
 
-    private void ApplyAssignedLocationPayload(AssignedLocationPayload payload, string role, string deviceId)
+    private void ApplySimulationAssignedLocationPayload(AssignedLocationPayload payload)
     {
+        var deviceId = connectedDeviceId ?? configuredDeviceId;
+        if (!string.Equals(payload.DeviceId, deviceId, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        // SimulationEngine is the only authority for assigned positions in simulated mode.
         ActiveSimulationLocationDataSource?.SetAssignedLocation(payload.Latitude, payload.Longitude);
 
-        if (!string.Equals(role, "VIP", StringComparison.OrdinalIgnoreCase)
-            || !string.Equals(payload.DeviceId, deviceId, StringComparison.OrdinalIgnoreCase))
+        if (!IsVipRole())
         {
             return;
         }

@@ -17,8 +17,7 @@ This document provides quick links to Geotrigger and DynamicEntity-related imple
 - Runtime initialization and authentication setup: [OnStartup](BasicDynamicEntity/App.xaml.cs#L9)
 
 ## EscortVIPs — Field app snippets
-- Simulated location source implementation: [SimulationLocationDataSource](EscortVIPs/FieldMobileApp/Location/SimulationLocationDataSource.cs#L7)
-- Start location source for device role/mode: [StartLocationDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.Location.cs#L13)
+- Start location source for device role/mode: [StartLocationDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.Location.cs#L12)
 - Build escort perimeter geotrigger monitors: [EnsurePerimeterMonitorsAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L26)
 - Create per-ring geotrigger from location feed + fence parameters: [CreateFenceMonitor](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L153)
 - Handle ring notifications and convert to VIP status transitions: [HandleRingNotificationAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L74)

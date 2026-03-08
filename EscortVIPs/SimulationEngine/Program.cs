@@ -39,6 +39,8 @@ internal sealed class SimulationEngineHost
     private const double VipWanderResponsePerSecond = 0.35;
     private const double VipWanderRetargetMinSeconds = 5.0;
     private const double VipWanderRetargetMaxSeconds = 9.0;
+    private const double VipMaxStepFloorMeters = 2.5;
+    private const double VipMaxStepMetersPerSecond = 3.5;
 
     private readonly HttpListener listener = new();
     private readonly ConcurrentDictionary<string, WebSocket> clients = new(StringComparer.OrdinalIgnoreCase);
@@ -332,6 +334,11 @@ internal sealed class SimulationEngineHost
                     current,
                     nowUtc,
                     deltaSeconds);
+
+                if (TryGetCurrentVipPoint(current, out var currentPoint))
+                {
+                    vipPoint = ClampVipStepDistance(currentPoint, vipPoint, deltaSeconds);
+                }
 
                 current.RouteDistanceMeters = updatedDistanceMeters;
                 current.Latitude = vipPoint.Y;
@@ -848,6 +855,34 @@ internal sealed class SimulationEngineHost
         var normalizedLongitude = ((RadiansToDegrees(longitude2) + 540.0) % 360.0) - 180.0;
         var normalizedLatitude = RadiansToDegrees(latitude2);
         return new MapPoint(normalizedLongitude, normalizedLatitude, SpatialReferences.Wgs84);
+    }
+
+    private static bool TryGetCurrentVipPoint(VipState state, out MapPoint point)
+    {
+        point = default!;
+
+        if (!state.RouteDistanceMeters.HasValue)
+            return false;
+
+        if (double.IsNaN(state.Latitude) || double.IsNaN(state.Longitude))
+            return false;
+
+        if (Math.Abs(state.Latitude) > 90 || Math.Abs(state.Longitude) > 180)
+            return false;
+
+        point = new MapPoint(state.Longitude, state.Latitude, SpatialReferences.Wgs84);
+        return true;
+    }
+
+    private static MapPoint ClampVipStepDistance(MapPoint currentPoint, MapPoint nextPoint, double deltaSeconds)
+    {
+        var allowedStepMeters = Math.Max(VipMaxStepFloorMeters, VipMaxStepMetersPerSecond * Math.Max(0.05, deltaSeconds));
+        var requestedStepMeters = CalculateDistanceMeters(currentPoint, nextPoint);
+        if (requestedStepMeters <= allowedStepMeters)
+            return nextPoint;
+
+        var bearingDegrees = ComputeBearingDegrees(currentPoint, nextPoint);
+        return MovePointGeodetic(currentPoint, allowedStepMeters, bearingDegrees);
     }
 
     private static double NormalizeDistance(double value, double lengthMeters)

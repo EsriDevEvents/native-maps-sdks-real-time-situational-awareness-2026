@@ -127,15 +127,6 @@ public partial class MainPage
             escortFenceUpdateGate.Release();
         }
 
-        await SyncVipStatusAsync();
-    }
-
-    private async Task SyncVipStatusAsync()
-    {
-        if (!string.Equals(configuredRole, "VIP", StringComparison.OrdinalIgnoreCase))
-            return;
-
-        await ApplyVipStatusFromRingsAsync();
     }
 
     private async Task ApplyVipStatusFromRingsAsync()
@@ -184,6 +175,7 @@ public partial class MainPage
 
         if (changed)
         {
+            PlayVipStatusChangedAudioCue(nextStatus);
             await PublishVipStatusAsync(nextStatus);
 
             if (vipDirectiveActive
@@ -198,6 +190,44 @@ public partial class MainPage
                 });
             }
         }
+    }
+
+    private void PlayVipStatusChangedAudioCue(string nextStatus)
+    {
+        if (string.IsNullOrWhiteSpace(nextStatus))
+            return;
+
+        _ = Task.Run(() =>
+        {
+#if WINDOWS
+            try
+            {
+                var normalized = nextStatus.Trim();
+                if (string.Equals(normalized, "In", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.Beep(880, 120);
+                    return;
+                }
+
+                if (string.Equals(normalized, "Warning", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.Beep(740, 140);
+                    Console.Beep(660, 140);
+                    return;
+                }
+
+                if (string.Equals(normalized, "Out", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.Beep(440, 180);
+                    Console.Beep(349, 220);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDiagnostic($"VIP status audio cue failed: {ex.Message}");
+            }
+#endif
+        });
     }
 
     private async Task PublishVipStatusAsync(string nextStatus)
