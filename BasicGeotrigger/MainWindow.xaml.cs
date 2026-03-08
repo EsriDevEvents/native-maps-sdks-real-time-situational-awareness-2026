@@ -12,7 +12,7 @@ using Esri.ArcGISRuntime.Toolkit.UI.Controls;
 using Esri.ArcGISRuntime.UI.Controls;
 using Microsoft.UI.Xaml;
 using Windows.UI.Popups;
-using ClickSource;
+using CustomSource;
 
 namespace BasicGeotrigger;
 
@@ -82,8 +82,8 @@ public sealed partial class MainWindow : Window
         // Feed / Fence / Rule - Geotrigger setup
 
         // create a geotrigger feed based on our custom click location data source
-        var clickSource = ClickLocationDataSource.Create(MapView);
-        var feed = new LocationGeotriggerFeed(clickSource);
+        var customSource = CustomLocationDataSource.Create(MapView);
+        var feed = new LocationGeotriggerFeed(customSource);
 
         // create fence parameters with a buffer distance of 30 meters around the fence point feature
         var fenceParameters = new FeatureFenceParameters(fenceTable, bufferDistance: 30d);

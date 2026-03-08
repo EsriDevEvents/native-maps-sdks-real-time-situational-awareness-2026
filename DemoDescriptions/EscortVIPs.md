@@ -51,7 +51,7 @@ The end-to-end flow follows this pipeline:
 
 ## Demo Script
 
-“This demo shows how we use Geotriggers and Dynamic Entities together in a real-time situational awareness workflow.
+This demo shows how we use Geotriggers and Dynamic Entities together in a real-time situational awareness workflow.
 
 Our scenario: a team of VIP scientists is attending a conference on the Esri campus. While they are here, the group will be taken on a walking tour of the campus and, because of the profile of these scientists, the tour requires a security escort. We want to ensure the safety of the VIPs while also providing a seamless experience for the VIPs, security escort, and campus security.
 
