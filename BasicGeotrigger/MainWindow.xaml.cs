@@ -97,11 +97,7 @@ public sealed partial class MainWindow : Window
             FenceRuleType.EnterOrExit,
             fenceParameters,
             messageExpression,
-            geotriggerName: "Palm Springs locales")
-        {
-            FeedAccuracyMode = FenceGeotriggerFeedAccuracyMode.UseGeometry,
-            EnterExitSpatialRelationship = FenceEnterExitSpatialRelationship.EnterContainsAndExitDoesNotIntersect,
-        };
+            geotriggerName: "Palm Springs locales");
 
         // start monitoring
         _monitor = new GeotriggerMonitor(geotrigger);
@@ -141,9 +137,7 @@ public sealed partial class MainWindow : Window
                 layer.UnselectFeature(fence);
 
                 // show a farewell dialog
-                var fenceName = fence.Attributes.TryGetValue("Name", out var nameValue)
-                    ? nameValue?.ToString() ?? "this location"
-                    : "this location";
+                var fenceName = fence.Attributes["Name"]?.ToString() ?? "this location";
                 var dialog = new MessageDialog(info.Message)
                 {
                     Title = $"Thanks for stopping by {fenceName}"
