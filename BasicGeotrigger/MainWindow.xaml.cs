@@ -10,6 +10,7 @@ using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Mapping.Popups;
 using Esri.ArcGISRuntime.Toolkit.UI.Controls;
 using Esri.ArcGISRuntime.UI.Controls;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Windows.UI.Popups;
 using CustomSource;
@@ -33,8 +34,27 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        TrySetWindowIcon();
         InitializeViewReferences();
         _ = InitializeAsync();
+    }
+
+    private void TrySetWindowIcon()
+    {
+        try
+        {
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "demo.ico");
+            if (!File.Exists(iconPath))
+                return;
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+            AppWindow.GetFromWindowId(windowId).SetIcon(iconPath);
+        }
+        catch
+        {
+            // Keep startup resilient if icon assignment fails.
+        }
     }
 
     private void InitializeViewReferences()
