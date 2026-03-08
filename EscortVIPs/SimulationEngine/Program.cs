@@ -41,11 +41,16 @@ internal sealed class SimulationEngineHost
     private const double VipWanderRetargetMaxSeconds = 9.0;
     private const double VipMaxStepFloorMeters = 2.5;
     private const double VipMaxStepMetersPerSecond = 3.5;
+    private const int EscortPublishBaseMilliseconds = 620;
+    private const int EscortPublishJitterMilliseconds = 180;
+    private const int VipPublishBaseMilliseconds = 760;
+    private const int VipPublishJitterMilliseconds = 260;
 
     private readonly HttpListener listener = new();
     private readonly ConcurrentDictionary<string, WebSocket> clients = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, SemaphoreSlim> sendGates = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, string> clientRoles = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, DateTimeOffset> nextLocationPublishUtcByDevice = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, VipState> vipStateByDevice = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, VipSpeedDirective> vipSpeedDirectiveByDevice = new(StringComparer.OrdinalIgnoreCase);
     private readonly SemaphoreSlim publishGate = new(1, 1);
@@ -224,6 +229,7 @@ internal sealed class SimulationEngineHost
             {
                 clients.TryRemove(registeredDeviceId, out _);
                 clientRoles.TryRemove(registeredDeviceId, out _);
+                nextLocationPublishUtcByDevice.TryRemove(registeredDeviceId, out _);
                 vipStateByDevice.TryRemove(registeredDeviceId, out _);
                 if (sendGates.TryRemove(registeredDeviceId, out var gate))
                     gate.Dispose();
@@ -359,6 +365,9 @@ internal sealed class SimulationEngineHost
 
             foreach (var escortDeviceId in GetClientDeviceIdsByRole("Escort"))
             {
+                if (!ShouldPublishLocationNow(escortDeviceId, nowUtc, isVip: false))
+                    continue;
+
                 var envelope = MessageSerializer.CreateEnvelope(MessageTypes.AssignedLocation, SessionId, "simulation-engine", escortAssignedPayload);
                 await SendToDeviceAsync(escortDeviceId, envelope, cancellationToken).ConfigureAwait(false);
             }
@@ -387,6 +396,9 @@ internal sealed class SimulationEngineHost
                     DistanceMeters: current.DistanceMeters,
                     DirectionToEscort: current.DirectionToEscort);
 
+                if (!ShouldPublishLocationNow(vipDeviceId, nowUtc, isVip: true))
+                    continue;
+
                 var envelope = MessageSerializer.CreateEnvelope(MessageTypes.AssignedLocation, SessionId, "simulation-engine", assignedPayload);
                 await SendToDeviceAsync(vipDeviceId, envelope, cancellationToken).ConfigureAwait(false);
             }
@@ -414,6 +426,26 @@ internal sealed class SimulationEngineHost
         }
 
         return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    private bool ShouldPublishLocationNow(string deviceId, DateTimeOffset nowUtc, bool isVip)
+    {
+        if (nextLocationPublishUtcByDevice.TryGetValue(deviceId, out var dueUtc)
+            && nowUtc < dueUtc)
+        {
+            return false;
+        }
+
+        nextLocationPublishUtcByDevice[deviceId] = nowUtc.AddMilliseconds(GetNextPublishIntervalMilliseconds(isVip));
+        return true;
+    }
+
+    private int GetNextPublishIntervalMilliseconds(bool isVip)
+    {
+        var baseMs = isVip ? VipPublishBaseMilliseconds : EscortPublishBaseMilliseconds;
+        var jitterMs = isVip ? VipPublishJitterMilliseconds : EscortPublishJitterMilliseconds;
+        var intervalMs = baseMs + wanderRandom.Next(-jitterMs, jitterMs + 1);
+        return Math.Max(260, intervalMs);
     }
 
     private List<string> GetClientDeviceIdsByRole(string role)
