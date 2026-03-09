@@ -58,15 +58,15 @@ public partial class MainViewModel : ObservableObject
         var escortSymbol = CreateEscortShieldSymbol();
 
         var unitRenderer = new UniqueValueRenderer(
-            fieldNames: new[] { "role" },
-            uniqueValues: new[]
-            {
+            fieldNames: ["role"],
+            uniqueValues:
+            [
                 new UniqueValue("Escort", "Escort", escortSymbol, "Escort"),
                 new UniqueValue("escort", "escort", escortSymbol, "escort"),
                 new UniqueValue("VIP", "VIP", vipVipSymbol, "VIP"),
                 new UniqueValue("Vip", "Vip", vipVipSymbol, "Vip"),
                 new UniqueValue("vip", "vip", vipVipSymbol, "vip")
-            },
+            ],
             defaultLabel: "Escort",
             defaultSymbol: escortSymbol);
 

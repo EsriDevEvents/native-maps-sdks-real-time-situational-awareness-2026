@@ -17,16 +17,10 @@ This document provides quick links to Geotrigger and DynamicEntity-related imple
 - Runtime initialization and authentication setup: [OnStartup](BasicDynamicEntity/App.xaml.cs#L9)
 
 ## EscortVIPs — Field app snippets
-- Start location source for device role/mode: [StartLocationDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.Location.cs#L12)
-- Build escort perimeter geotrigger monitors: [EnsurePerimeterMonitorsAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L26)
-- Create per-ring geotrigger from location feed + fence parameters: [CreateFenceMonitor](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L153)
-- Handle ring notifications and convert to VIP status transitions: [HandleRingNotificationAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L74)
-- Dynamic entity source for escort/VIP telemetry: [EscortVipDynamicEntityDataSource](EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L8)
-- Wire field app to dynamic entity feed: [EnsureEscortVipDynamicEntityDataSourceAsync](EscortVIPs/FieldMobileApp/MainPage.StatusAndDynamics.cs#L99)
-- Publish VIP telemetry updates into dynamic entities: [PublishVipTelemetry](EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L37)
+- VIP: Build escort perimeter geotrigger monitors: [EnsurePerimeterMonitorsAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L30)
+- VIP: Update escort location fence: [UpdateEscortFenceAsync](EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L102)
+- Escort: Dynamic entity source for VIP roster: [EscortVipDynamicEntityDataSource](EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L8)
 
 ## EscortVIPs — Dashboard snippets
-- Custom DynamicEntity data source class: [MockDynamicEntityDataSource](EscortVIPs/CommandDashboard/RealTime/MockDynamicEntityDataSource.cs#L8)
-- Attach dynamic entity layer to map: [DynamicEntityLayer initialization](EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L66)
-- Push current escort/VIP state into layer: [PublishDynamicEntities](EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L226)
-- Publish per-VIP updates: [PublishVipUnit](EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L239)
+- Attach dynamic entity layer to map: [DynamicEntityLayer initialization](EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L53)
+- Query: [ApplyVipFilterAsync](EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L144)

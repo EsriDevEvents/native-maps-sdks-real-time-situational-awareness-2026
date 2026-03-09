@@ -32,13 +32,13 @@ public partial class MainPage
                 GeometryType.Point,
                 SpatialReferences.Wgs84);
 
-        escortPerimeterMonitor = CreateFenceMonitor(
+        escortPerimeterMonitor = CreateFenceGeotriggerMonitor(
             locationDataSource,
             escortPerimeterFenceTable,
             EscortPerimeterRadiusMeters,
             OnEscortPerimeterNotification);
 
-        warningRingMonitor = CreateFenceMonitor(
+        warningRingMonitor = CreateFenceGeotriggerMonitor(
             locationDataSource,
             escortPerimeterFenceTable,
             WarningRingRadiusMeters,
@@ -126,7 +126,6 @@ public partial class MainPage
         {
             escortFenceUpdateGate.Release();
         }
-
     }
 
     private async Task ApplyVipStatusFromRingsAsync()
@@ -138,17 +137,15 @@ public partial class MainPage
         await ApplyVipStatusAsync(nextStatus);
     }
 
-    private static GeotriggerMonitor CreateFenceMonitor(
+    private static GeotriggerMonitor CreateFenceGeotriggerMonitor(
         LocationDataSource locationSource,
         FeatureCollectionTable fenceTable,
         double radiusMeters,
         EventHandler<GeotriggerNotificationInfo> notificationHandler)
     {
+        var feed = new LocationGeotriggerFeed(locationSource);
         var fenceParameters = new FeatureFenceParameters(fenceTable, radiusMeters);
-        var geotrigger = new FenceGeotrigger(
-            new LocationGeotriggerFeed(locationSource),
-            FenceRuleType.EnterOrExit,
-            fenceParameters)
+        var geotrigger = new FenceGeotrigger(feed, FenceRuleType.EnterOrExit, fenceParameters)
         {
             FeedAccuracyMode = FenceGeotriggerFeedAccuracyMode.UseGeometryWithAccuracy,
             EnterExitSpatialRelationship = FenceEnterExitSpatialRelationship.EnterContainsAndExitDoesNotIntersect

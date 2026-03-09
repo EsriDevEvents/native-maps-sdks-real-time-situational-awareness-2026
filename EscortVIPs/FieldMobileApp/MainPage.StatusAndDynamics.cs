@@ -27,7 +27,7 @@ public partial class MainPage
     private readonly Dictionary<string, VipStatusListItem> escortVipListItemByDevice = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, VipStatusEntry> escortVipStatusByDevice = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, VipPositionEntry> escortVipPositionByDevice = new(StringComparer.OrdinalIgnoreCase);
-    private readonly EscortVipDynamicEntityDataSource escortVipDynamicEntityDataSource = new();
+    private readonly VipDynamicEntityDataSource escortVipDynamicEntityDataSource = new();
     private readonly HashSet<DynamicEntity> subscribedEscortVipDynamicEntities = new(ReferenceEqualityComparer.Instance);
     private readonly Lock escortVipDynamicEntityGate = new();
     private string displayedDistance = "  --.- m";
@@ -182,9 +182,9 @@ public partial class MainPage
         if (entityKey is null)
             return;
 
-        var displayName = NormalizeVipDeviceId(ReadDynamicEntityString(dynamicEntity.Attributes, EscortVipDynamicEntityDataSource.EntityIdFieldName))
+        var displayName = NormalizeVipDeviceId(ReadDynamicEntityString(dynamicEntity.Attributes, VipDynamicEntityDataSource.EntityIdFieldName))
             ?? entityKey;
-        var status = ReadDynamicEntityString(dynamicEntity.Attributes, EscortVipDynamicEntityDataSource.StatusFieldName);
+        var status = ReadDynamicEntityString(dynamicEntity.Attributes, VipDynamicEntityDataSource.StatusFieldName);
         UpsertEscortVipStatus(entityKey, displayName, status);
 
         var latitude = ReadDynamicEntityDouble(dynamicEntity.Attributes, "latitude");
@@ -467,7 +467,7 @@ public partial class MainPage
                 return normalized;
         }
 
-        var fallbackTrackId = ReadDynamicEntityString(dynamicEntity.Attributes, EscortVipDynamicEntityDataSource.EntityIdFieldName);
+        var fallbackTrackId = ReadDynamicEntityString(dynamicEntity.Attributes, VipDynamicEntityDataSource.EntityIdFieldName);
         return NormalizeVipDeviceId(fallbackTrackId);
     }
 

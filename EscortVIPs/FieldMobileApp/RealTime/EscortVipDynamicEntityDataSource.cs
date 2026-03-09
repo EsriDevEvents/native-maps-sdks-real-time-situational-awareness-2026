@@ -5,7 +5,7 @@ using Esri.ArcGISRuntime.RealTime;
 
 namespace FieldMobileApp.RealTime;
 
-public sealed class EscortVipDynamicEntityDataSource : DynamicEntityDataSource
+public sealed class VipDynamicEntityDataSource : DynamicEntityDataSource
 {
     public const string EntityIdFieldName = "trackId";
     public const string StatusFieldName = "status";
