@@ -6,9 +6,8 @@ namespace CommandDashboard.Services;
 public sealed class TourDashboardDataService : IDashboardDataService
 {
     private readonly Random random = new();
-    private const double BaseLatitude = 34.0556;
-    private const double BaseLongitude = -117.1825;
-
+    private const double BaseLatitude = 34.0562;
+    private const double BaseLongitude = -117.195573;
     public IReadOnlyList<FieldUnitStatus> CreateInitialVipUnits()
     {
         var vip = new List<FieldUnitStatus>
