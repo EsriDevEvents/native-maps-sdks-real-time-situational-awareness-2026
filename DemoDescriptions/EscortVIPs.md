@@ -96,7 +96,14 @@ VIP --> ESC
 - Status of the VIP is completely controlled by the **Geotrigger** notifications
     - **Geotrigger** is the authoritative source of truth for VIP status (at the edge of the system)
 
+### Running Demo - switch between Dashboard and Field Apps
+- VIP outside security perimeter
+    - Search for VIP (**QueryDynamicEntitiesAsync**)
+    - Show track history
+    - Send Command guidance VIP
+
 ### Code
+
 - Field app snippets
     - VIP: Build escort perimeter geotrigger / monitors: [EnsurePerimeterMonitorsAsync](../EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L30)
     - VIP: Update escort location fence: [UpdateEscortFenceAsync](../EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L102)
@@ -108,4 +115,4 @@ VIP --> ESC
 ### Take aways
 - Dashboard and field apps share one live operating picture
 - **Geotrigger** drives immediate edge awareness and action
-- **DynamicEntities** provide operational context for apps
+- **DynamicEntities** provide operational context
