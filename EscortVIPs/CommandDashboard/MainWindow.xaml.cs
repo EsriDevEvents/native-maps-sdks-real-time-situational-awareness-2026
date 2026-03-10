@@ -1,7 +1,10 @@
 ﻿using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
+using Esri.ArcGISRuntime.ArcGISServices;
 using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.Mapping;
+using Esri.ArcGISRuntime.Mapping.Labeling;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 using CommandDashboard.Configuration;
@@ -21,8 +24,6 @@ public partial class MainWindow : Window
     private readonly FieldMessagingHost fieldMessagingHost;
     private readonly GraphicsOverlay routeOverlay = new();
     private readonly GraphicsOverlay safetyOverlay = new();
-    private readonly GraphicsOverlay unitLabelOverlay = new();
-    private readonly Dictionary<string, Graphic> unitLabelGraphicsById = new(StringComparer.OrdinalIgnoreCase);
     private Graphic? mainRouteGraphic;
     private Graphic? safetyGraphic;
     private Graphic? warningGraphic;
@@ -60,7 +61,7 @@ public partial class MainWindow : Window
 
         mapView.GraphicsOverlays?.Add(routeOverlay);
         mapView.GraphicsOverlays?.Add(safetyOverlay);
-        mapView.GraphicsOverlays?.Add(unitLabelOverlay);
+        ConfigureDynamicEntityLabels();
         UpdateMainRouteGraphic();
         UpdateSafetyPolygon();
         if (!TrySetInitialViewpointToMainRouteExtent())
@@ -129,12 +130,6 @@ public partial class MainWindow : Window
             foreach (FieldUnitStatus unit in e.OldItems)
             {
                 unit.PropertyChanged -= OnUnitPropertyChanged;
-
-                if (unitLabelGraphicsById.TryGetValue(unit.DisplayName, out var labelGraphic))
-                {
-                    unitLabelOverlay.Graphics.Remove(labelGraphic);
-                    unitLabelGraphicsById.Remove(unit.DisplayName);
-                }
 
                 if (!string.IsNullOrWhiteSpace(trackedVipDeviceId)
                     && string.Equals(trackedVipDeviceId, unit.DisplayName, StringComparison.OrdinalIgnoreCase))
@@ -310,6 +305,34 @@ public partial class MainWindow : Window
         return degrees * Math.PI / 180.0;
     }
 
+    private void ConfigureDynamicEntityLabels()
+    {
+        var layer = viewModel.DynamicEntityLayer;
+        if (layer is null)
+            return;
+
+        layer.LabelDefinitions.Clear();
+
+        var labelSymbol = new TextSymbol
+        {
+            Color = System.Drawing.Color.Black,
+            Size = 14,
+            HaloColor = System.Drawing.Color.FromArgb(210, 255, 255, 255),
+            HaloWidth = 2
+        };
+
+        var labelDefinition = new LabelDefinition(new SimpleLabelExpression("[name]"), labelSymbol)
+        {
+            Placement = LabelingPlacement.Automatic,
+            WhereClause = "role = 'Vip'",
+            DeconflictionStrategy = LabelDeconflictionStrategy.DynamicNeverRemove
+        };
+
+        layer.LabelDefinitions.Add(labelDefinition);
+
+        layer.LabelsEnabled = true;
+    }
+
     private void UpdateSafetyPolygon()
     {
         if (!viewModel.HasEscortPosition || string.IsNullOrWhiteSpace(viewModel.EscortUnit.DisplayName))
@@ -325,8 +348,6 @@ public partial class MainWindow : Window
                 safetyOverlay.Graphics.Remove(warningGraphic);
                 warningGraphic = null;
             }
-
-            UpdateUnitLabels();
 
             return;
         }
@@ -391,62 +412,6 @@ public partial class MainWindow : Window
             warningGraphic.Symbol = warningRingSymbol;
         }
 
-        UpdateUnitLabels();
-    }
-
-    private void UpdateUnitLabels()
-    {
-        var desiredIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var vipUnit in viewModel.VipUnits)
-        {
-            if (string.IsNullOrWhiteSpace(vipUnit.DisplayName))
-                continue;
-
-            var vipPoint = new MapPoint(vipUnit.Longitude, vipUnit.Latitude, SpatialReferences.Wgs84);
-            UpsertUnitLabelGraphic(vipUnit.DisplayName, vipPoint, vipUnit.DisplayName, isEscort: false);
-            desiredIds.Add(vipUnit.DisplayName);
-        }
-
-        var staleIds = unitLabelGraphicsById.Keys
-            .Where(id => !desiredIds.Contains(id))
-            .ToList();
-
-        foreach (var staleId in staleIds)
-        {
-            if (!unitLabelGraphicsById.TryGetValue(staleId, out var staleGraphic))
-                continue;
-
-            unitLabelOverlay.Graphics.Remove(staleGraphic);
-            unitLabelGraphicsById.Remove(staleId);
-        }
-    }
-
-    private void UpsertUnitLabelGraphic(string id, MapPoint location, string labelText, bool isEscort)
-    {
-        var foregroundColor = System.Drawing.Color.Black;
-        var textSymbol = new TextSymbol(
-            labelText,
-            foregroundColor,
-            18,
-            Esri.ArcGISRuntime.Symbology.HorizontalAlignment.Left,
-            Esri.ArcGISRuntime.Symbology.VerticalAlignment.Bottom)
-        {
-            OffsetY = 12,
-            HaloColor = System.Drawing.Color.FromArgb(210, 255, 255, 255),
-            HaloWidth = 2
-        };
-
-        if (unitLabelGraphicsById.TryGetValue(id, out var existingGraphic))
-        {
-            existingGraphic.Geometry = location;
-            existingGraphic.Symbol = textSymbol;
-            return;
-        }
-
-        var graphic = new Graphic(location, textSymbol);
-        unitLabelOverlay.Graphics.Add(graphic);
-        unitLabelGraphicsById[id] = graphic;
     }
 
     private async void OnVipStopClick(object sender, RoutedEventArgs e)

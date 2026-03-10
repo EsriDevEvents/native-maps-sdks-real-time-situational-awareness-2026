@@ -12,20 +12,55 @@
         Height="720"
         Width="1180"
         MinHeight="560"
-        MinWidth="920">
+        MinWidth="920"
+        WindowState="Maximized">
     <Window.Resources>
+        <LinearGradientBrush x:Key="VipStatusSuccessGradient"
+                             StartPoint="0,0"
+                             EndPoint="1,0">
+            <GradientStop Color="#FF1B5E20" Offset="0" />
+            <GradientStop Color="#FF2E7D32" Offset="0.55" />
+            <GradientStop Color="#FF43A047" Offset="1" />
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="VipStatusWarningGradient"
+                             StartPoint="0,0"
+                             EndPoint="1,0">
+            <GradientStop Color="#FF8D6E00" Offset="0" />
+            <GradientStop Color="#FFF9A825" Offset="0.55" />
+            <GradientStop Color="#FFFFB300" Offset="1" />
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="VipStatusDangerGradient"
+                             StartPoint="0,0"
+                             EndPoint="1,0">
+            <GradientStop Color="#FF8E0000" Offset="0" />
+            <GradientStop Color="#FFC62828" Offset="0.55" />
+            <GradientStop Color="#FFE53935" Offset="1" />
+        </LinearGradientBrush>
+
         <Style x:Key="VipStatusBannerStyle"
                TargetType="Border"
                BasedOn="{StaticResource CalciteFormBorderStyle}">
             <Setter Property="Padding" Value="18,10" />
             <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="Background" Value="{StaticResource CalciteStatusSuccessBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style x:Key="TopStatusBarStyle"
+               TargetType="Border"
+               BasedOn="{StaticResource CalciteFormBorderStyle}">
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Background" Value="{StaticResource VipStatusSuccessGradient}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsAnyVipDanger}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CalciteStatusWarningBrush}" />
+                    <Setter Property="Background" Value="{StaticResource VipStatusWarningGradient}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsAnyVipOut}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource CalciteStatusDangerBrush}" />
+                    <Setter Property="Background" Value="{StaticResource VipStatusDangerGradient}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -136,34 +171,37 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Margin="14,14,14,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <Border Margin="14,14,14,0"
+                Style="{StaticResource TopStatusBarStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-            <StackPanel>
-                <TextBlock FontSize="28"
-                           FontWeight="SemiBold"
-                           Foreground="{StaticResource CalciteText1Brush}"
-                           Text="Command Dashboard" />
-                <TextBlock Margin="0,4,0,0"
-                           FontSize="14"
-                           Foreground="{StaticResource CalciteText2Brush}"
-                           Text="{Binding SessionId, StringFormat=Session: {0}}" />
-            </StackPanel>
+                <StackPanel>
+                    <TextBlock FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="White"
+                               Text="Command Dashboard" />
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="14"
+                               Foreground="White"
+                               Opacity="0.92"
+                               Text="{Binding SessionId, StringFormat=Session: {0}}" />
+                </StackPanel>
 
-            <Border Grid.Column="1"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Right"
-                    Style="{StaticResource VipStatusBannerStyle}">
-                <TextBlock FontSize="24"
-                           FontWeight="Bold"
-                           Foreground="{StaticResource CalciteTextInverseBrush}"
-                           Text="{Binding VipOverallStatus}" />
-            </Border>
-
-        </Grid>
+                <Border Grid.Column="1"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Style="{StaticResource VipStatusBannerStyle}">
+                    <TextBlock FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Text="{Binding VipOverallStatus}" />
+                </Border>
+            </Grid>
+        </Border>
 
         <Grid Grid.Row="2" Margin="14,0,14,14">
             <Grid.ColumnDefinitions>
@@ -263,9 +301,10 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock FontSize="16"
+                            <TextBlock FontSize="18"
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource CalciteText1Brush}"
+                                       VerticalAlignment="Center"
                                        Text="VIPs" />
 
                             <ToggleButton x:Name="VipSearchToggle"

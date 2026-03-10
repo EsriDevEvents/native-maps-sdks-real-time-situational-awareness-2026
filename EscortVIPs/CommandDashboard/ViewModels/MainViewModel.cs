@@ -24,7 +24,7 @@ namespace CommandDashboard.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly TourDynamicEntityDataSource dynamicEntityDataSource;
+    private TourDynamicEntityDataSource dynamicEntityDataSource = null!;
     private readonly HashSet<string> connectedDeviceIds = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> registeredFieldAppDeviceIds = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<DynamicEntity> subscribedDynamicEntities = new(ReferenceEqualityComparer.Instance);
@@ -50,8 +50,20 @@ public partial class MainViewModel : ObservableObject
         EscortUnit.DirectionToEscort = "-";
         MainMap = new Map(BasemapStyle.ArcGISStreets);
 
+        InitializeDynamicEntityLayer();
+
+        sessionId = $"DEVSUMMIT-2026-{DateTime.Now:HHmm}";
+        RecalculateAggregateState();
+        EscortConnectionState = "Disconnected";
+        VipWhereClause = "name = \"Tesla\"";
+        VipFilterStatus = "Filter: showing all VIPs";
+    }
+
+    private void InitializeDynamicEntityLayer()
+    {
         dynamicEntityDataSource = new TourDynamicEntityDataSource();
-        var vipVipSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, DrawingColor.FromArgb(236, 239, 241), 14)
+
+        var vipSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, DrawingColor.FromArgb(236, 239, 241), 14)
         {
             Outline = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, DrawingColor.FromArgb(38, 50, 56), 1.5)
         };
@@ -59,33 +71,20 @@ public partial class MainViewModel : ObservableObject
 
         var unitRenderer = new UniqueValueRenderer(
             fieldNames: ["role"],
-            uniqueValues:
-            [
-                new UniqueValue("Escort", "Escort", escortSymbol, "Escort"),
-                new UniqueValue("escort", "escort", escortSymbol, "escort"),
-                new UniqueValue("VIP", "VIP", vipVipSymbol, "VIP"),
-                new UniqueValue("Vip", "Vip", vipVipSymbol, "Vip"),
-                new UniqueValue("vip", "vip", vipVipSymbol, "vip")
-            ],
-            defaultLabel: "Escort",
-            defaultSymbol: escortSymbol);
+            uniqueValues: [new UniqueValue("Escort", "Escort", escortSymbol, "Escort")],
+            defaultLabel: "VIP",
+            defaultSymbol: vipSymbol);
 
         DynamicEntityLayer = new DynamicEntityLayer(dynamicEntityDataSource)
         {
             Renderer = unitRenderer
         };
+
         MainMap.OperationalLayers.Add(DynamicEntityLayer);
 
-        _ = dynamicEntityDataSource.LoadAsync();
         _ = dynamicEntityDataSource.ConnectAsync();
         dynamicEntityDataSource.DynamicEntityReceived += (_, eventArgs) => HandleDynamicEntityReceived(eventArgs);
         PublishDynamicEntities();
-
-        sessionId = $"DEVSUMMIT-2026-{DateTime.Now:HHmm}";
-        RecalculateAggregateState();
-        EscortConnectionState = "Disconnected";
-        VipWhereClause = "name = \"Tesla\"";
-        VipFilterStatus = "Filter: showing all VIPs";
     }
 
     public ObservableCollection<FieldUnitStatus> VipUnits { get; }
@@ -109,7 +108,7 @@ public partial class MainViewModel : ObservableObject
     private Map mainMap;
 
     [ObservableProperty]
-    private DynamicEntityLayer dynamicEntityLayer;
+    private DynamicEntityLayer dynamicEntityLayer = null!;
 
     [ObservableProperty]
     private string escortConnectionState = "Disconnected";
@@ -118,7 +117,7 @@ public partial class MainViewModel : ObservableObject
     private int totalVIPs;
 
     [ObservableProperty]
-    private string vipOverallStatus = "All VIPs In Range";
+    private string vipOverallStatus = "All VIPs are inside the security perimeter.";
 
     [ObservableProperty]
     private string vipPerimeterSummary = "0 of 0 VIPs inside the security perimeter";
@@ -229,10 +228,10 @@ public partial class MainViewModel : ObservableObject
         IsAnyVipDanger = VipUnits.Any(unit => unit.Status == UnitStatus.Warning);
         TotalVIPs = VipUnits.Count;
         VipOverallStatus = IsAnyVipOut
-            ? "VIPs Out of Range"
+            ? "One or more VIPs are outside the security perimeter."
             : IsAnyVipDanger
-                ? "VIPs in Warning Perimeter"
-                : "All VIPs in Range";
+                ? "One or more VIPs are near the perimeter boundary."
+                : "All VIPs are inside the security perimeter.";
 
         VipPerimeterSummary = outOfPerimeterCount > 0
             ? $"{outOfPerimeterCount} of {TotalVIPs} VIPs outside the security perimeter"

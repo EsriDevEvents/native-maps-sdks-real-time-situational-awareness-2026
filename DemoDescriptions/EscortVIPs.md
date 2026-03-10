@@ -28,31 +28,32 @@ VIP --> ESC
     - A team of VIP scientists is attending a conference on the Esri campus. The group will be taken on a walking tour of the campus and, because of the profile of these scientists, the tour requires a security escort.
     - Goal: Ensure the safety of the VIPs while also providing a seamless experience for
         - VIPs, Security Escort, and Campus Security
-- To facilitate this we built two applications:
-    - Field App for tour members (VIP + escort)
+- To facilitate this we built multiple applications:
+    - Field Apps for tour members (VIP + escort)
     - Command Dashboard for campus security to monitor the tour in real-time
 - As the tour moves:
-    - field devices will share live location and status updates over peer-to-peer network
+    - field devices will share live location and status updates over a peer-to-peer field network
         - Apps are field-network ready (do not rely on cloud services)
     - Data flows field-to-field, field-to-dashboard, minimal command guidance from dashboard-to-field
-- Each **VIP scientist** will carry a mobile device running our field app with a VIP role
-    - Evaluate the VIP's proximity to the escort (`Inside`, `Outside`, or `Close to the Edge`) of a moving perimeter around the escort.
-    - Notify the VIP when they are nearing or outside the escort perimeter.
-    - Share status changes and location updates with both the escort and the dashboard.
+- Each **VIP scientist** will carry a mobile device running our VIP app
+    - Evaluate the VIP's proximity to the escort and determine if the VIP is `Inside`, `Outside`, or `Close to the Edge` of the moving perimeter around the escort.
     - Use a pair of **Geotriggers** to determine VIP status
         - Moving fence based on the buffered escort location
-        - **Geotrigger** signals if a VIP nears or crosses the security perimeter
+        - Each time the VIP receives an escort location update, the fence in the feature table is updated
+        - **Geotrigger** sends a notification if a VIP nears or crosses the security perimeter
             - Device notification (audio and visual changes)
-            - Publishes the VIP status on the network
-- **Security Escort** runs our field app with the Escort role
+            - Broadcast the VIP status on the network
+            - Geotrigger notifications are the authoritative source for VIP status - nothing else sets the status for the VIP
+    - Share status changes and location updates with both the escort and the dashboard.
+- **Security Escort** runs our Escort app
     - Maintains a roster of VIPs with their current status
+        - Uses a custom **DynamicEntityDataSource** to provide the live operating picture of VIP statuses
     - Shares its location with VIP devices and the dashboard
-    - Uses a custom **DynamicEntityDataSource** to provide the live operating picture of VIP statuses
 - **Campus security** personnel monitor the tour in real-time using our Dashboard app
     - Ingests VIP and Escort location and status updates from the field
-    - Can send simple guidance commands back to VIP devices
+        - Uses a custom **DynamicEntityDataSource** to maintain current location and status of tour members
     - Can query and display filtered subsets of VIPs (i.e. show only VIPs that are in a `Warning` state)
-    - Uses a custom **DynamicEntityDataSource** to maintain current location and status of tour members
+    - Can send simple guidance commands back to VIP devices
 - Fire up the demo
     - Simulation
         - these apps work in live mode as well, but difficult to show that in this session
@@ -71,8 +72,8 @@ VIP --> ESC
 - The right side of the app shows
     - **General** status of the operation (tour)
     - **VIP list** in the UI panel that changes with the state of the VIPs
-- When a VIP crosses outside of the security perimeter
-    - General status changes on the operation panel (At-a-glance status)
+- When a VIP crosses outside of the security perimeter (all based on DEDS events)
+    - General status changes on the operation panel (heading bar status)
     - Color changes on the map
     - Individual VIP status changes in the VIP roster
     - Note the **Stop / Hurry** directive buttons
@@ -95,12 +96,14 @@ VIP --> ESC
     - another banner is shown directing the VIP to hold or hurry to rejoin the escort
 - Status of the VIP is completely controlled by the **Geotrigger** notifications
     - **Geotrigger** is the authoritative source of truth for VIP status (at the edge of the system)
+- Notice that there is no Map in any of these apps
+    - Real-time API does not require a map to run effectively
 
 ### Running Demo - switch between Dashboard and Field Apps
 - VIP outside security perimeter
     - Search for VIP (**QueryDynamicEntitiesAsync**)
-    - Show track history
-    - Send Command guidance VIP
+    - Show VIP track history
+    - Send Command guidance to VIP
 
 ### Code
 
