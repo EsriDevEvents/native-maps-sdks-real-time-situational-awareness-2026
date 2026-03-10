@@ -15,9 +15,7 @@ public sealed class VipDynamicEntityDataSource : DynamicEntityDataSource
         var fields = new List<Field>
         {
             Field.CreateString(EntityIdFieldName, "Track ID", 64),
-            Field.CreateString(StatusFieldName, "Status", 32),
-            Field.CreateDouble("latitude", "Latitude"),
-            Field.CreateDouble("longitude", "Longitude")
+            Field.CreateString(StatusFieldName, "Status", 32)
         };
 
         var info = new DynamicEntityDataSourceInfo(EntityIdFieldName, fields);
@@ -43,9 +41,7 @@ public sealed class VipDynamicEntityDataSource : DynamicEntityDataSource
         var attributes = new Dictionary<string, object?>
         {
             [EntityIdFieldName] = normalizedDeviceId,
-            [StatusFieldName] = payload.Status,
-            ["latitude"] = payload.Latitude,
-            ["longitude"] = payload.Longitude
+            [StatusFieldName] = payload.Status
         };
 
         var point = new MapPoint(payload.Longitude, payload.Latitude, SpatialReferences.Wgs84);
