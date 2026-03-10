@@ -110,9 +110,9 @@ VIP --> ESC
 - Field app snippets
     - VIP: Build escort perimeter geotrigger / monitors: [EnsurePerimeterMonitorsAsync](../EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L30)
     - VIP: Update escort location fence: [UpdateEscortFenceAsync](../EscortVIPs/FieldMobileApp/MainPage.Geotriggers.cs#L102)
-    - Escort: Dynamic entity source for VIP roster: [EscortVipDynamicEntityDataSource](../EscortVIPs/FieldMobileApp/RealTime/EscortVipDynamicEntityDataSource.cs#L8)
+    - Escort: Dynamic entity source for VIP roster: [EscortVipDynamicEntityDataSource](../EscortVIPs/FieldMobileApp/RealTime/VipDynamicEntityDataSource.cs#L8)
 - Dashboard snippets
-    - Attach dynamic entity layer to map: [DynamicEntityLayer initialization](../EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L53)
+    - Attach dynamic entity layer to map: [DynamicEntityLayer initialization](../EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L62)
     - Query: [ApplyVipFilterAsync](../EscortVIPs/CommandDashboard/ViewModels/MainViewModel.cs#L144)
 
 ### Take aways
