@@ -131,6 +131,15 @@ namespace Simple
             }
         }
 
+        private static string GetContentFilePath(string fileName)
+        {
+            var contentPath = Path.Combine(AppContext.BaseDirectory, "Content", fileName);
+            if (!File.Exists(contentPath))
+                throw new FileNotFoundException($"Could not find renderer file: {contentPath}");
+
+            return contentPath;
+        }
+
         #endregion
 
         private async Task CreateAndConnectAsync()
@@ -182,15 +191,6 @@ namespace Simple
             // update renderer for the track line
             dynamicEntityLayer.TrackDisplayProperties.TrackLineRenderer =
                 new SimpleRenderer(new SimpleLineSymbol(SimpleLineSymbolStyle.Dash, Color.Blue, 1d));
-        }
-
-        private static string GetContentFilePath(string fileName)
-        {
-            var contentPath = Path.Combine(AppContext.BaseDirectory, "Content", fileName);
-            if (!File.Exists(contentPath))
-                throw new FileNotFoundException($"Could not find renderer file: {contentPath}");
-
-            return contentPath;
         }
 
         private static void ShowLabels(DynamicEntityLayer dynamicEntityLayer)

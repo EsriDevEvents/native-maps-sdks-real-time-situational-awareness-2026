@@ -27,7 +27,5 @@ After the layer is added, incoming observations are rendered as dynamic entities
 
 ## Key Implementation References
 
-- [Stream connection and layer creation](../BasicDynamicEntity/MainWindow.xaml.cs#L136)
-- [Track display configuration](../BasicDynamicEntity/MainWindow.xaml.cs#L159)
-- [Alternate renderer setup](../BasicDynamicEntity/MainWindow.xaml.cs#L172)
-- [Label definition and enablement](../BasicDynamicEntity/MainWindow.xaml.cs#L196)
+- [Stream connection and layer creation](../BasicDynamicEntity/MainWindow.xaml.cs#L145)
+

@@ -23,4 +23,4 @@ When the simulated location enters a fence, the app selects the fence feature an
 
 ## Key Implementation Reference
 
-- [Geotrigger construction](../BasicGeotrigger/MainWindow.xaml.cs#L80)
+- [Geotrigger construction](../BasicGeotrigger/MainWindow.xaml.cs#L100)
