@@ -44,6 +44,7 @@ public partial class MainWindow : Window
         fieldMessagingHost.ConnectionStateChanged += OnConnectionStateChanged;
 
         Loaded += OnLoaded;
+        Activated += OnActivated;
         Closed += OnClosed;
         viewModel.VipUnits.CollectionChanged += OnVipCollectionChanged;
         viewModel.EscortUnit.PropertyChanged += OnUnitPropertyChanged;
@@ -64,7 +65,7 @@ public partial class MainWindow : Window
         ConfigureDynamicEntityLabels();
         UpdateMainRouteGraphic();
         UpdateSafetyPolygon();
-        if (!TrySetInitialViewpointToMainRouteExtent())
+        if (!TryZoomToEscortSafetyPerimeter() && !TrySetInitialViewpointToMainRouteExtent())
         {
             CenterMapOnEscort();
         }
@@ -88,6 +89,11 @@ public partial class MainWindow : Window
         await fieldMessagingHost.DisposeAsync();
     }
 
+    private void OnActivated(object? sender, EventArgs e)
+    {
+        TryZoomToEscortSafetyPerimeter();
+    }
+
     private void OnFieldMessageReceived(object? sender, FieldMessageReceivedEventArgs e)
     {
         _ = Dispatcher.InvokeAsync(() =>
@@ -98,9 +104,35 @@ public partial class MainWindow : Window
 
             if (!initialMainRouteViewpointApplied)
             {
-                TrySetInitialViewpointToMainRouteExtent();
+                if (!TryZoomToEscortSafetyPerimeter())
+                {
+                    TrySetInitialViewpointToMainRouteExtent();
+                }
             }
         });
+    }
+
+    private bool TryZoomToEscortSafetyPerimeter()
+    {
+        var mapView = MainMapView;
+        if (mapView is null || !viewModel.HasEscortPosition)
+            return false;
+
+        var escortPoint = new MapPoint(viewModel.EscortUnit.Longitude, viewModel.EscortUnit.Latitude, SpatialReferences.Wgs84);
+        var perimeterGeometry = GeometryEngine.BufferGeodetic(
+            escortPoint,
+            DemoConstants.EscortSafetyRadiusMeters,
+            LinearUnits.Meters,
+            double.NaN,
+            GeodeticCurveType.ShapePreserving);
+
+        if (perimeterGeometry is null)
+            return false;
+
+        initialMainRouteViewpointApplied = true;
+        escortFollowScaleInitialized = true;
+        _ = mapView.SetViewpointGeometryAsync(perimeterGeometry, 50);
+        return true;
     }
 
     private void OnConnectionStateChanged(object? sender, EventArgs e)
