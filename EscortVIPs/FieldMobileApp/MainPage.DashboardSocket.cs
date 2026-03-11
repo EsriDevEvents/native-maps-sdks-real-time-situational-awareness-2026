@@ -69,6 +69,11 @@ public partial class MainPage
 
                         latestEscortLatitude = payload.Latitude;
                         latestEscortLongitude = payload.Longitude;
+
+                        // If geotrigger startup had a transient failure, retry monitor initialization
+                        // as soon as escort positions begin arriving.
+                        _ = EnsurePerimeterMonitorsAsync(configuredRole);
+
                         _ = UpdateEscortFenceAsync(payload.Latitude, payload.Longitude);
                         return;
                     }
@@ -92,7 +97,7 @@ public partial class MainPage
 
                         try
                         {
-                            escortVipDynamicEntityDataSource.PublishVipTelemetry(payload);
+                            escortVipDynamicEntityDataSource.PushVipObservation(payload);
                         }
                         catch (Exception ex)
                         {

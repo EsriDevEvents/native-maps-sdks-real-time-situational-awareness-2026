@@ -13,7 +13,6 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Esri.ArcGISRuntime.RealTime;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using DrawingColor = System.Drawing.Color;
@@ -42,7 +41,7 @@ public partial class MainViewModel : ObservableObject
         VipPanelUnits = new ObservableCollection<FieldUnitStatus>();
         FilteredVipUnits = new ObservableCollection<FieldUnitStatus>();
         VipUnits.CollectionChanged += (_, _) => RecalculateAggregateState();
-        VipUnits.CollectionChanged += OnVipUnitsCollectionChanged;
+        VipUnits.CollectionChanged += (_, _) => RebuildFilteredVipUnits();
         EscortUnit = dashboardDataService.CreateEscortUnit();
         EscortUnit.DisplayName = string.Empty;
         EscortUnit.Status = UnitStatus.Unknown;
@@ -207,11 +206,6 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private void OnVipUnitsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        RebuildFilteredVipUnits();
-    }
-
     private void RebuildFilteredVipUnits()
     {
         FilteredVipUnits.Clear();
@@ -255,13 +249,8 @@ public partial class MainViewModel : ObservableObject
 
         foreach (var unit in VipUnits)
         {
-            PublishVipUnit(unit);
+            dynamicEntityDataSource.PublishUnit(unit);
         }
-    }
-
-    private void PublishVipUnit(FieldUnitStatus unit)
-    {
-        dynamicEntityDataSource.PublishUnit(unit);
     }
 
     private static Symbol CreateEscortShieldSymbol()
@@ -666,17 +655,6 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private void OnDynamicEntityChanged(DynamicEntity dynamicEntity, DynamicEntityChangedEventArgs eventArgs)
-    {
-        try
-        {
-            UpdateVipPanelFromDynamicEntity(dynamicEntity);
-        }
-        catch
-        {
-        }
-    }
-
     private void TrySubscribeDynamicEntityChanged(DynamicEntity dynamicEntity)
     {
         try
@@ -686,7 +664,16 @@ public partial class MainViewModel : ObservableObject
                 if (!subscribedDynamicEntities.Add(dynamicEntity))
                     return;
 
-                dynamicEntity.DynamicEntityChanged += (_, eventArgs) => OnDynamicEntityChanged(dynamicEntity, eventArgs);
+                dynamicEntity.DynamicEntityChanged += (_, _) =>
+                {
+                    try
+                    {
+                        UpdateVipPanelFromDynamicEntity(dynamicEntity);
+                    }
+                    catch
+                    {
+                    }
+                };
             }
         }
         catch

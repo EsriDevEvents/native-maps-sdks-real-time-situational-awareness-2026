@@ -40,16 +40,23 @@ public partial class MainPage
             locationDataSource,
             escortPerimeterFenceTable,
             EscortPerimeterRadiusMeters,
-            OnEscortPerimeterNotification);
+            async (_, notificationInfo) => await HandleGeotriggerNotificationAsync(notificationInfo, isWarningRing: false));
 
         warningRingMonitor = CreateFenceGeotriggerMonitor(
             locationDataSource,
             escortPerimeterFenceTable,
             WarningRingRadiusMeters,
-            OnWarningRingNotification);
+            async (_, notificationInfo) => await HandleGeotriggerNotificationAsync(notificationInfo, isWarningRing: true));
 
         await escortPerimeterMonitor.StartAsync();
         await warningRingMonitor.StartAsync();
+
+        // Seed the moving fence immediately if escort coordinates are already known.
+        if (latestEscortLatitude.HasValue && latestEscortLongitude.HasValue)
+        {
+            await UpdateEscortFenceAsync(latestEscortLatitude.Value, latestEscortLongitude.Value);
+        }
+
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
             ApplyStatusVisual(null, "Waiting for escort perimeter");
@@ -77,16 +84,6 @@ public partial class MainPage
         var monitor = new GeotriggerMonitor(geotrigger);
         monitor.Notification += notificationHandler;
         return monitor;
-    }
-
-    private async void OnEscortPerimeterNotification(object? sender, GeotriggerNotificationInfo notificationInfo)
-    {
-        await HandleGeotriggerNotificationAsync(notificationInfo, isWarningRing: false);
-    }
-
-    private async void OnWarningRingNotification(object? sender, GeotriggerNotificationInfo notificationInfo)
-    {
-        await HandleGeotriggerNotificationAsync(notificationInfo, isWarningRing: true);
     }
 
     private async Task HandleGeotriggerNotificationAsync(GeotriggerNotificationInfo notificationInfo, bool isWarningRing)

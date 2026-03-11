@@ -44,7 +44,7 @@ public partial class MainWindow : Window
         fieldMessagingHost.ConnectionStateChanged += OnConnectionStateChanged;
 
         Loaded += OnLoaded;
-        Activated += OnActivated;
+        Activated += (_, _) => TryZoomToEscortSafetyPerimeter();
         Closed += OnClosed;
         viewModel.VipUnits.CollectionChanged += OnVipCollectionChanged;
         viewModel.EscortUnit.PropertyChanged += OnUnitPropertyChanged;
@@ -87,11 +87,6 @@ public partial class MainWindow : Window
         fieldMessagingHost.ConnectionStateChanged -= OnConnectionStateChanged;
         fieldMessagingHost.MessageReceived -= OnFieldMessageReceived;
         await fieldMessagingHost.DisposeAsync();
-    }
-
-    private void OnActivated(object? sender, EventArgs e)
-    {
-        TryZoomToEscortSafetyPerimeter();
     }
 
     private void OnFieldMessageReceived(object? sender, FieldMessageReceivedEventArgs e)

@@ -33,7 +33,7 @@ public sealed class VipDynamicEntityDataSource : DynamicEntityDataSource
         return Task.CompletedTask;
     }
 
-    public void PublishVipTelemetry(VipTelemetryPayload payload)
+    public void PushVipObservation(VipTelemetryPayload payload)
     {
         var normalizedDeviceId = NormalizeDeviceId(payload.DeviceId);
         if (normalizedDeviceId is null)
