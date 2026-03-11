@@ -24,10 +24,46 @@ public partial class MainPage
     private async void OnPageLoaded(object? sender, EventArgs e)
     {
         Loaded -= OnPageLoaded;
-        await StartLocationDataSourceAsync();
-        await EnsurePerimeterMonitorsAsync(configuredRole);
-        await EnsureEscortVipDynamicEntityDataSourceAsync(configuredRole);
-        await ConnectAsync();
+
+        // Keep reconnect logic alive even if first connect attempt fails.
+        _ = Task.Run(() => EnsureConnectedLoopAsync(), CancellationToken.None);
+
+        try
+        {
+            await StartLocationDataSourceAsync();
+        }
+        catch (Exception ex)
+        {
+            LogDiagnostic($"Location startup failed: {ex.Message}");
+        }
+
+        try
+        {
+            await EnsurePerimeterMonitorsAsync(configuredRole);
+        }
+        catch (Exception ex)
+        {
+            LogDiagnostic($"Geotrigger startup failed: {ex.Message}");
+        }
+
+        try
+        {
+            await EnsureEscortVipDynamicEntityDataSourceAsync(configuredRole);
+        }
+        catch (Exception ex)
+        {
+            LogDiagnostic($"Dynamic entity startup failed: {ex.Message}");
+        }
+
+        try
+        {
+            await ConnectAsync();
+        }
+        catch (Exception ex)
+        {
+            LogDiagnostic($"Initial dashboard connect failed: {ex.Message}");
+            ApplyStatusVisual("Reconnecting...", null);
+        }
     }
 
     private async Task ConnectAsync()
@@ -66,7 +102,6 @@ public partial class MainPage
         }
 
         _ = Task.Run(() => WatchdogLoopAsync(watchdogCts.Token), watchdogCts.Token);
-        _ = Task.Run(() => EnsureConnectedLoopAsync(), CancellationToken.None);
     }
 
     private async Task DisconnectAsync()
