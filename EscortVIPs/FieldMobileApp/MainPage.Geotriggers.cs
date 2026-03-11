@@ -52,91 +52,6 @@ public partial class MainPage
         });
     }
 
-    private async void OnEscortPerimeterNotification(object? sender, GeotriggerNotificationInfo notificationInfo)
-    {
-        if (notificationInfo is not FenceGeotriggerNotificationInfo fenceNotification)
-            return;
-
-        await HandleRingNotificationAsync(fenceNotification, isWarningRing: false);
-    }
-
-    private async void OnWarningRingNotification(object? sender, GeotriggerNotificationInfo notificationInfo)
-    {
-        if (notificationInfo is not FenceGeotriggerNotificationInfo fenceNotification)
-            return;
-
-        await HandleRingNotificationAsync(fenceNotification, isWarningRing: true);
-    }
-
-    private async Task HandleRingNotificationAsync(FenceGeotriggerNotificationInfo fenceNotification, bool isWarningRing)
-    {
-        bool? isInsideFence = fenceNotification.FenceNotificationType switch
-        {
-            FenceNotificationType.Entered => true,
-            FenceNotificationType.Exited => false,
-            _ => (bool?)null
-        };
-
-        if (!isInsideFence.HasValue)
-            return;
-
-        if (isWarningRing)
-            vipInsideWarningRing = isInsideFence.Value;
-        else
-            vipInsideEscortPerimeter = isInsideFence.Value;
-
-        await ApplyVipStatusFromRingsAsync();
-    }
-
-    private string? GetVipStatusFromRings()
-    {
-        if (!vipInsideEscortPerimeter.HasValue || !vipInsideWarningRing.HasValue)
-            return null;
-
-        if (!vipInsideEscortPerimeter.Value)
-            return "Out";
-
-        return vipInsideWarningRing.Value ? "In" : "Warning";
-    }
-
-    private async Task UpdateEscortFenceAsync(double latitude, double longitude)
-    {
-        if (escortPerimeterFenceTable is null)
-            return;
-
-        await escortFenceUpdateGate.WaitAsync();
-        try
-        {
-            var geometry = new MapPoint(longitude, latitude, SpatialReferences.Wgs84);
-            if (escortPerimeterFence is null)
-            {
-                escortPerimeterFence = escortPerimeterFenceTable.CreateFeature(
-                    [new KeyValuePair<string, object?>("FenceId", "EscortLead")],
-                    geometry);
-
-                await escortPerimeterFenceTable.AddFeatureAsync(escortPerimeterFence);
-            }
-            else
-            {
-                escortPerimeterFence.Geometry = geometry;
-                await escortPerimeterFenceTable.UpdateFeatureAsync(escortPerimeterFence);
-            }
-        }
-        finally
-        {
-            escortFenceUpdateGate.Release();
-        }
-    }
-
-    private async Task ApplyVipStatusFromRingsAsync()
-    {
-        var nextStatus = GetVipStatusFromRings();
-        if (nextStatus is null)
-            return;
-
-        await ApplyVipStatusAsync(nextStatus);
-    }
-
     private static GeotriggerMonitor CreateFenceGeotriggerMonitor(
         LocationDataSource locationSource,
         FeatureCollectionTable fenceTable,
@@ -156,6 +71,46 @@ public partial class MainPage
         return monitor;
     }
 
+    private async void OnEscortPerimeterNotification(object? sender, GeotriggerNotificationInfo notificationInfo)
+    {
+        await HandleGeotriggerNotificationAsync(notificationInfo, isWarningRing: false);
+    }
+
+    private async void OnWarningRingNotification(object? sender, GeotriggerNotificationInfo notificationInfo)
+    {
+        await HandleGeotriggerNotificationAsync(notificationInfo, isWarningRing: true);
+    }
+
+    private async Task HandleGeotriggerNotificationAsync(GeotriggerNotificationInfo notificationInfo, bool isWarningRing)
+    {
+        if (notificationInfo is not FenceGeotriggerNotificationInfo fenceNotification)
+            return;
+
+        bool? isInsideFence = fenceNotification.FenceNotificationType switch
+        {
+            FenceNotificationType.Entered => true,
+            FenceNotificationType.Exited => false,
+            _ => (bool?)null
+        };
+
+        if (!isInsideFence.HasValue)
+            return;
+
+        if (isWarningRing)
+            vipInsideWarningRing = isInsideFence.Value;
+        else
+            vipInsideEscortPerimeter = isInsideFence.Value;
+
+        if (!vipInsideEscortPerimeter.HasValue || !vipInsideWarningRing.HasValue)
+            return;
+
+        var nextStatus = !vipInsideEscortPerimeter.Value
+            ? "Out"
+            : vipInsideWarningRing.Value ? "In" : "Warning";
+
+        await ApplyVipStatusAsync(nextStatus);
+    }
+
     private async Task ApplyVipStatusAsync(string nextStatus)
     {
         if (string.IsNullOrWhiteSpace(nextStatus))
@@ -173,14 +128,14 @@ public partial class MainPage
         if (changed)
         {
             PlayVipStatusChangedAudioCue(nextStatus);
-            await PublishVipStatusAsync(nextStatus);
+            await BroadcastVipStatusAsync(nextStatus);
 
             if (vipDirectiveActive
                 && ShouldAutoResumeFromStatus(nextStatus)
                 && (string.Equals(vipDirectiveSignal, "STOP", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(vipDirectiveSignal, "HURRY", StringComparison.OrdinalIgnoreCase)))
             {
-                await PublishVipDirectiveResetAsync();
+                await BroadcastVipDirectiveResetAsync();
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     UpdateVipCommandBanner("RESUME", "Escort reached. Resume normal pace.", isActive: false);
@@ -227,7 +182,7 @@ public partial class MainPage
         });
     }
 
-    private async Task PublishVipStatusAsync(string nextStatus)
+    private async Task BroadcastVipStatusAsync(string nextStatus)
     {
         var deviceId = connectedDeviceId;
         var sessionId = connectedSessionId;
@@ -243,7 +198,7 @@ public partial class MainPage
         var sent = await SendAsync(statusEnvelope, receiveCts?.Token ?? CancellationToken.None);
         if (!sent)
         {
-            LogDiagnostic("PublishVipStatusAsync skipped because websocket is not open.");
+            LogDiagnostic("BroadcastVipStatusAsync skipped because websocket is not open.");
         }
 
         if (simulatedMode)
@@ -251,12 +206,12 @@ public partial class MainPage
             var simulationSent = await SendSimulationAsync(statusEnvelope, receiveCts?.Token ?? CancellationToken.None);
             if (!simulationSent)
             {
-                LogDiagnostic("PublishVipStatusAsync to simulation engine skipped because simulation websocket is not open.");
+                LogDiagnostic("BroadcastVipStatusAsync to simulation engine skipped because simulation websocket is not open.");
             }
         }
     }
 
-    private async Task PublishVipDirectiveResetAsync()
+    private async Task BroadcastVipDirectiveResetAsync()
     {
         var deviceId = connectedDeviceId;
         var sessionId = connectedSessionId;
@@ -276,7 +231,7 @@ public partial class MainPage
         var sent = await SendAsync(resetEnvelope, receiveCts?.Token ?? CancellationToken.None);
         if (!sent)
         {
-            LogDiagnostic("PublishVipDirectiveResetAsync skipped because websocket is not open.");
+            LogDiagnostic("BroadcastVipDirectiveResetAsync skipped because websocket is not open.");
         }
 
         if (simulatedMode)
@@ -284,8 +239,37 @@ public partial class MainPage
             var simulationSent = await SendSimulationAsync(resetEnvelope, receiveCts?.Token ?? CancellationToken.None);
             if (!simulationSent)
             {
-                LogDiagnostic("PublishVipDirectiveResetAsync to simulation engine skipped because simulation websocket is not open.");
+                LogDiagnostic("BroadcastVipDirectiveResetAsync to simulation engine skipped because simulation websocket is not open.");
             }
+        }
+    }
+
+    private async Task UpdateEscortFenceAsync(double latitude, double longitude)
+    {
+        if (escortPerimeterFenceTable is null)
+            return;
+
+        await escortFenceUpdateGate.WaitAsync();
+        try
+        {
+            var geometry = new MapPoint(longitude, latitude, SpatialReferences.Wgs84);
+            if (escortPerimeterFence is null)
+            {
+                escortPerimeterFence = escortPerimeterFenceTable.CreateFeature(
+                    [new KeyValuePair<string, object?>("FenceId", "EscortLead")],
+                    geometry);
+
+                await escortPerimeterFenceTable.AddFeatureAsync(escortPerimeterFence);
+            }
+            else
+            {
+                escortPerimeterFence.Geometry = geometry;
+                await escortPerimeterFenceTable.UpdateFeatureAsync(escortPerimeterFence);
+            }
+        }
+        finally
+        {
+            escortFenceUpdateGate.Release();
         }
     }
 
