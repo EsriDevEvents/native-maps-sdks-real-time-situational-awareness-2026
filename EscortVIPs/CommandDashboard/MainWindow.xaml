@@ -90,10 +90,43 @@
         </Style>
 
         <Style x:Key="VipSearchToggleButtonStyle"
-               TargetType="ToggleButton"
-               BasedOn="{StaticResource CalciteSecondaryButtonBaseStyle}">
+               TargetType="ToggleButton">
+            <Setter Property="Background" Value="{StaticResource CalciteBackground2Brush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CalciteBorder1Brush}" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{StaticResource CalciteText1Brush}" />
             <Setter Property="ToolTip" Value="Show VIP filter" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="ToggleBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{StaticResource CalciteBackground3Brush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{StaticResource CalciteBrandPressBrush}" />
+                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{StaticResource CalciteBrandPressBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource CalciteTextInverseBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{StaticResource CalciteBrandBrush}" />
+                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{StaticResource CalciteBrandHoverBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource CalciteTextInverseBrush}" />
+                                <Setter Property="ToolTip" Value="Hide VIP filter" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsPressed" Value="True">
                     <Setter Property="Background" Value="{StaticResource CalciteBrandPressBrush}" />
