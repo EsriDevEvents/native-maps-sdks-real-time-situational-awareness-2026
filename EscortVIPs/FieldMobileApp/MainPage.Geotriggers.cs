@@ -27,11 +27,15 @@ public partial class MainPage
             || (escortPerimeterMonitor is not null && warningRingMonitor is not null))
             return;
 
+        // Create a single fence table that will hold the perimeter fence for both geotrigger monitors
+        // - there will be a single fence feature in the table that gets updated with the Escort's current location.
+        // - both geotriggers share the same location and only differ by radius.
         escortPerimeterFenceTable ??= new FeatureCollectionTable(
                 [Field.CreateString("FenceId", "Fence Id", 64)],
                 GeometryType.Point,
                 SpatialReferences.Wgs84);
 
+        // Create the geotrigger monitors for the escort perimeter and warning ring
         escortPerimeterMonitor = CreateFenceGeotriggerMonitor(
             locationDataSource,
             escortPerimeterFenceTable,
@@ -58,14 +62,18 @@ public partial class MainPage
         double radiusMeters,
         EventHandler<GeotriggerNotificationInfo> notificationHandler)
     {
+        // Feed / Fence / Rule - Geotrigger setup
         var feed = new LocationGeotriggerFeed(locationSource);
         var fenceParameters = new FeatureFenceParameters(fenceTable, radiusMeters);
         var geotrigger = new FenceGeotrigger(feed, FenceRuleType.EnterOrExit, fenceParameters)
         {
+            // Only signal the geotrigger when the GPS point and its horizontal accuracy is completely inside / outside the fence.
+            // - this helps to reduce jitter when the VIP is near the edge of the perimeter.
             FeedAccuracyMode = FenceGeotriggerFeedAccuracyMode.UseGeometryWithAccuracy,
             EnterExitSpatialRelationship = FenceEnterExitSpatialRelationship.EnterContainsAndExitDoesNotIntersect
         };
 
+        // Create the monitor and wire up the notification event handler
         var monitor = new GeotriggerMonitor(geotrigger);
         monitor.Notification += notificationHandler;
         return monitor;
@@ -86,6 +94,8 @@ public partial class MainPage
         if (notificationInfo is not FenceGeotriggerNotificationInfo fenceNotification)
             return;
 
+        // determine the official status of the VIP (inside, outside, or warning)
+        // - based on the geotrigger notification type and which monitor signaled it.
         bool? isInsideFence = fenceNotification.FenceNotificationType switch
         {
             FenceNotificationType.Entered => true,
@@ -120,6 +130,7 @@ public partial class MainPage
 
         vipStatus = nextStatus;
 
+        // Update the UI with the new VIP status
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
             ApplyStatusVisual(nextStatus, null);
@@ -127,7 +138,10 @@ public partial class MainPage
 
         if (changed)
         {
+            // Play an audio cue to alert the user of the VIP status change
             PlayVipStatusChangedAudioCue(nextStatus);
+
+            // Broadcast the VIP status change onto the network for escort and dashboard
             await BroadcastVipStatusAsync(nextStatus);
 
             if (vipDirectiveActive
@@ -252,6 +266,8 @@ public partial class MainPage
         await escortFenceUpdateGate.WaitAsync();
         try
         {
+            // update the geometry of the existing fence feature, or create it if it doesn't exist yet.
+            // The geotrigger monitor will automatically pick up the geometry change and update the fence location accordingly.
             var geometry = new MapPoint(longitude, latitude, SpatialReferences.Wgs84);
             if (escortPerimeterFence is null)
             {

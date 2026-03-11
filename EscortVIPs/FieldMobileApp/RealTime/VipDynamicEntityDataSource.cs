@@ -12,6 +12,7 @@ public sealed class VipDynamicEntityDataSource : DynamicEntityDataSource
 
     protected override Task<DynamicEntityDataSourceInfo> OnLoadAsync()
     {
+        // Define the schema for the VIP dynamic entities (ID and Status in this case)
         var fields = new List<Field>
         {
             Field.CreateString(EntityIdFieldName, "Track ID", 64),
@@ -38,13 +39,14 @@ public sealed class VipDynamicEntityDataSource : DynamicEntityDataSource
         if (normalizedDeviceId is null)
             return;
 
+        var point = new MapPoint(payload.Longitude, payload.Latitude, SpatialReferences.Wgs84);
         var attributes = new Dictionary<string, object?>
         {
             [EntityIdFieldName] = normalizedDeviceId,
             [StatusFieldName] = payload.Status
         };
 
-        var point = new MapPoint(payload.Longitude, payload.Latitude, SpatialReferences.Wgs84);
+        // AddObservation will push a new DynamicEntityObservation for the current track
         AddObservation(point, attributes);
     }
 

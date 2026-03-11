@@ -61,8 +61,10 @@ public partial class MainViewModel : ObservableObject
 
     private void InitializeDynamicEntityLayer()
     {
+        // Custom DynamicEntityDataSource built from VIP and Escort location and status updates
         dynamicEntityDataSource = new TourDynamicEntityDataSource();
 
+        // create the main renderer for the DynamicEntityLayer
         var vipSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, DrawingColor.FromArgb(236, 239, 241), 14)
         {
             Outline = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, DrawingColor.FromArgb(38, 50, 56), 1.5)
@@ -75,13 +77,14 @@ public partial class MainViewModel : ObservableObject
             defaultLabel: "VIP",
             defaultSymbol: vipSymbol);
 
+        // Create the DynamicEntityLayer with the custom data source and renderer, and add it to the map
         DynamicEntityLayer = new DynamicEntityLayer(dynamicEntityDataSource)
         {
             Renderer = unitRenderer
         };
-
         MainMap.OperationalLayers.Add(DynamicEntityLayer);
 
+        // Connect to the DynamicEntityDataSource and subscribe to incoming DynamicEntity observations
         _ = dynamicEntityDataSource.ConnectAsync();
         dynamicEntityDataSource.DynamicEntityReceived += (_, eventArgs) => HandleDynamicEntityReceived(eventArgs);
         PublishDynamicEntities();
@@ -148,14 +151,19 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
+            // Query the DynamicEntityDataSource for VIP entities matching the where clause filter
+            // - DynamicEntityQueryParameters also supports spatial filters and track Id queries
             var queryParameters = new DynamicEntityQueryParameters
             {
                 WhereClause = whereClause
             };
 
+            // QueryDynamicEntitiesAsync will return dynamic entities whose latest observation satisfies the query parameters
+            // - the result is a snapshot in time of the DynamicEntityDataSource at the moment of the query
             var queryResult = await dynamicEntityDataSource.QueryDynamicEntitiesAsync(queryParameters, CancellationToken.None);
-            var matchedTrackIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            // filter the list
+            var matchedTrackIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var dynamicEntity in queryResult)
             {
                 var trackId = ReadAttributeAsString(dynamicEntity.Attributes, "trackId");
