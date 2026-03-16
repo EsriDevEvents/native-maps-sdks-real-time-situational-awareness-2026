@@ -31,9 +31,6 @@ VIP --> ESC
 - To facilitate this we built multiple applications:
     - Field Apps for tour members (VIP + escort)
     - Command Dashboard for campus security to monitor the tour in real-time
-- As the tour moves:
-    - Field devices share live location and status updates over a peer-to-peer field network.
-    - Apps are field-network ready and do not rely on cloud services.
 - Each VIP scientist runs the VIP app:
     - Uses two Geotriggers (perimeter + warning ring) to determine status of the VIP (`In`, `Warning`, or `Out`).
     - Geotrigger notifications are the authoritative VIP status source.
@@ -42,6 +39,9 @@ VIP --> ESC
 - Campus security dashboard:
     - Uses a custom DynamicEntityDataSource for live escort + VIP operating picture.
     - Supports VIP filtering (for example, `Warning`) and simple guidance commands.
+- As the tour moves:
+    - Field devices share live location and status updates over our field network.
+    - Real-time APIs are field-network ready (no regard to network topology) and do not rely on cloud services.
 - Fire up the demo:
     - Run in simulation mode for this session (same apps also support live mode).
 
