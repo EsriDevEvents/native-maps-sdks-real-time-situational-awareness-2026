@@ -1,0 +1,66 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.automationProfile.windows": {
+      "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    "terminal.integrated.enablePersistentSessions": false,
+    "task.allowAutomaticTasks": "off",
+    "editor.semanticHighlighting.enabled": true,
+    "editor.semanticTokenColorCustomizations": {
+      "enabled": true,
+      "rules": {
+        "type": {
+          "fontStyle": "bold"
+        },
+        "type.defaultLibrary": {
+          "fontStyle": "bold"
+        },
+        "type.declaration": {
+          "fontStyle": "bold"
+        },
+        "class": {
+          "fontStyle": "bold"
+        },
+        "class.defaultLibrary": {
+          "fontStyle": "bold"
+        },
+        "class.declaration": {
+          "fontStyle": "bold"
+        },
+        "interface": {
+          "fontStyle": "bold"
+        },
+        "struct": {
+          "fontStyle": "bold"
+        },
+        "enum": {
+          "fontStyle": "bold"
+        }
+      }
+    },
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    "[csharp]": {
+      "editor.lineNumbers": "off",
+      "editor.semanticHighlighting.enabled": true
+    },
+    "files.exclude": {
+      "**/.vs": true,
+      "**/bin": true,
+      "**/obj": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-dotnettools.csharp",
+      "ms-dotnettools.csdevkit",
+      "esri.arcgis-toolkit"
+    ]
+  }
+}

@@ -1,0 +1,998 @@
+{
+  "settings": {
+    "components": {
+      "code": false,
+      "binaries": false
+    },
+    "targetId": "net10.0-windows10.0.19041",
+    "targetDisplayName": ".NETCoreApp,Version=v10.0"
+  },
+  "analysisStartTime": "2026-03-03T21:21:26.794045Z",
+  "analysisEndTime": "2026-03-03T21:21:30.9008558Z",
+  "privacyModeHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2270980",
+  "stats": {
+    "summary": {
+      "projects": 1,
+      "issues": 4,
+      "incidents": 42,
+      "effort": 42
+    },
+    "charts": {
+      "severity": {
+        "Mandatory": 40,
+        "Optional": 0,
+        "Potential": 2,
+        "Information": 0
+      },
+      "category": {
+        "Project": 1,
+        "Api": 41
+      }
+    }
+  },
+  "projects": [
+    {
+      "path": "BasicDynamicEntity.csproj",
+      "startingProject": true,
+      "issues": 3,
+      "storyPoints": 42,
+      "properties": {
+        "appName": "BasicDynamicEntity",
+        "projectKind": "Wpf",
+        "frameworks": [
+          "net8.0-windows10.0.19041.0"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 6,
+        "numberOfCodeFiles": 4,
+        "linesTotal": 430,
+        "linesOfCode": 298,
+        "totalApiScanned": 175,
+        "minLinesOfCodeToChange": 41,
+        "maxLinesOfCodeToChange": 41
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "801df80d-2743-417c-be2d-76a43216e261",
+          "ruleId": "Project.0002",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Current target framework: net8.0-windows10.0.19041.0\nRecommended target framework: net10.0-windows10.0.19041",
+              "protected": "Current target framework: net8.0-windows10.0.19041.0\nRecommended target framework: net10.0-windows10.0.19041"
+            },
+            "kind": "File",
+            "path": "BasicDynamicEntity.csproj",
+            "snippet": "Current target framework: net8.0-windows10.0.19041.0\nRecommended target framework: net10.0-windows10.0.19041",
+            "protectedSnippet": "Current target framework: net8.0-windows10.0.19041.0\nRecommended target framework: net10.0-windows10.0.19041",
+            "properties": {
+              "CurrentTargetFramework": "net8.0-windows10.0.19041.0",
+              "RecommendedTargetFramework": "net10.0-windows10.0.19041"
+            }
+          }
+        },
+        {
+          "incidentId": "1daf1312-6ba4-42fc-8d69-c0340e0add9e",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "streamService.ConnectionStatusChanged \u002B= (s, status) =\u003E\r\n                Dispatcher.Invoke(() =\u003E _statusText.Text = $\u0022{status}\u0022);",
+              "protected": "T:System.Windows.Threading.Dispatcher"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "streamService.ConnectionStatusChanged \u002B= (s, status) =\u003E\r\n                Dispatcher.Invoke(() =\u003E _statusText.Text = $\u0022{status}\u0022);",
+            "protectedSnippet": "T:System.Windows.Threading.Dispatcher",
+            "label": "T:System.Windows.Threading.Dispatcher",
+            "line": 135,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "2ff1d7dc-1b75-4163-b38d-b04f49fe4794",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "streamService.ConnectionStatusChanged \u002B= (s, status) =\u003E\r\n                Dispatcher.Invoke(() =\u003E _statusText.Text = $\u0022{status}\u0022);",
+              "protected": "P:System.Windows.Threading.DispatcherObject.Dispatcher"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "streamService.ConnectionStatusChanged \u002B= (s, status) =\u003E\r\n                Dispatcher.Invoke(() =\u003E _statusText.Text = $\u0022{status}\u0022);",
+            "protectedSnippet": "P:System.Windows.Threading.DispatcherObject.Dispatcher",
+            "label": "P:System.Windows.Threading.DispatcherObject.Dispatcher",
+            "line": 135,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "6850ad13-c473-4906-8028-7514deed1ecb",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "streamService.ConnectionStatusChanged \u002B= (s, status) =\u003E\r\n                Dispatcher.Invoke(() =\u003E _statusText.Text = $\u0022{status}\u0022);",
+              "protected": "M:System.Windows.Threading.Dispatcher.Invoke(System.Delegate,System.Object[])"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "streamService.ConnectionStatusChanged \u002B= (s, status) =\u003E\r\n                Dispatcher.Invoke(() =\u003E _statusText.Text = $\u0022{status}\u0022);",
+            "protectedSnippet": "M:System.Windows.Threading.Dispatcher.Invoke(System.Delegate,System.Object[])",
+            "label": "M:System.Windows.Threading.Dispatcher.Invoke(System.Delegate,System.Object[])",
+            "line": 135,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "9310378c-53f2-4664-b504-5293646cca30",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var streamService = new ArcGISStreamService(new Uri(streamServiceUrl));",
+              "protected": "T:System.Uri"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "var streamService = new ArcGISStreamService(new Uri(streamServiceUrl));",
+            "protectedSnippet": "T:System.Uri",
+            "label": "T:System.Uri",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 132,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "0ebf75c2-8263-4877-a64a-3390a979b0d3",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "var streamService = new ArcGISStreamService(new Uri(streamServiceUrl));",
+              "protected": "M:System.Uri.#ctor(System.String)"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "var streamService = new ArcGISStreamService(new Uri(streamServiceUrl));",
+            "protectedSnippet": "M:System.Uri.#ctor(System.String)",
+            "label": "M:System.Uri.#ctor(System.String)",
+            "links": [
+              {
+                "title": "API documentation",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 132,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "01c1fb3c-47f0-45f7-be29-73310df97fdd",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "private void ToggleLabels_Click(object sender, RoutedEventArgs e)",
+              "protected": "T:System.Windows.RoutedEventArgs"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "private void ToggleLabels_Click(object sender, RoutedEventArgs e)",
+            "protectedSnippet": "T:System.Windows.RoutedEventArgs",
+            "label": "T:System.Windows.RoutedEventArgs",
+            "line": 111,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "9529ee30-406a-4052-9695-efde046cbea5",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "private void ToggleAlternateRenderer_Click(object sender, RoutedEventArgs e)",
+              "protected": "T:System.Windows.RoutedEventArgs"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "private void ToggleAlternateRenderer_Click(object sender, RoutedEventArgs e)",
+            "protectedSnippet": "T:System.Windows.RoutedEventArgs",
+            "label": "T:System.Windows.RoutedEventArgs",
+            "line": 87,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "c26226a2-9441-42cd-9672-35952c5bf35b",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "private void ToggleTrackDisplay_Click(object sender, RoutedEventArgs e)",
+              "protected": "T:System.Windows.RoutedEventArgs"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "private void ToggleTrackDisplay_Click(object sender, RoutedEventArgs e)",
+            "protectedSnippet": "T:System.Windows.RoutedEventArgs",
+            "label": "T:System.Windows.RoutedEventArgs",
+            "line": 67,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "e07ec4d0-19ab-448b-97ed-4b3ab2d01b92",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "private async void AddLayer_Click(object sender, RoutedEventArgs e)",
+              "protected": "T:System.Windows.RoutedEventArgs"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "private async void AddLayer_Click(object sender, RoutedEventArgs e)",
+            "protectedSnippet": "T:System.Windows.RoutedEventArgs",
+            "label": "T:System.Windows.RoutedEventArgs",
+            "line": 54,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "44994cd8-7934-4dd4-a948-e5eb304aa87f",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "MessageBox.Show(ex.ToString(), \u0022Error\u0022);",
+              "protected": "T:System.Windows.MessageBox"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "MessageBox.Show(ex.ToString(), \u0022Error\u0022);",
+            "protectedSnippet": "T:System.Windows.MessageBox",
+            "label": "T:System.Windows.MessageBox",
+            "line": 63,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "404ae14c-05eb-4595-9984-9059faa644bc",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "MessageBox.Show(ex.ToString(), \u0022Error\u0022);",
+              "protected": "T:System.Windows.MessageBoxResult"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "MessageBox.Show(ex.ToString(), \u0022Error\u0022);",
+            "protectedSnippet": "T:System.Windows.MessageBoxResult",
+            "label": "T:System.Windows.MessageBoxResult",
+            "line": 63,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "4fa5532f-882f-4550-9bcb-939af344947e",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "MessageBox.Show(ex.ToString(), \u0022Error\u0022);",
+              "protected": "M:System.Windows.MessageBox.Show(System.String,System.String)"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "MessageBox.Show(ex.ToString(), \u0022Error\u0022);",
+            "protectedSnippet": "M:System.Windows.MessageBox.Show(System.String,System.String)",
+            "label": "M:System.Windows.MessageBox.Show(System.String,System.String)",
+            "line": 63,
+            "column": 16
+          }
+        },
+        {
+          "incidentId": "290ed0e2-1d66-4f4b-a7ae-387d6ff1a475",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "public MainWindow()\r\n        {\r\n            InitializeComponent();\r\n        }",
+              "protected": "M:System.Windows.Window.#ctor"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "public MainWindow()\r\n        {\r\n            InitializeComponent();\r\n        }",
+            "protectedSnippet": "M:System.Windows.Window.#ctor",
+            "label": "M:System.Windows.Window.#ctor",
+            "line": 21,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "d4940765-650c-47ef-939e-94e09324de7a",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "public MainWindow()\r\n        {\r\n            InitializeComponent();\r\n        }",
+              "protected": "M:System.Windows.Window.#ctor"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "public MainWindow()\r\n        {\r\n            InitializeComponent();\r\n        }",
+            "protectedSnippet": "M:System.Windows.Window.#ctor",
+            "label": "M:System.Windows.Window.#ctor",
+            "line": 21,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "8a1e4986-322b-47fd-b1c2-2591ac8e4468",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Window",
+              "protected": "T:System.Windows.Window"
+            },
+            "kind": "File",
+            "path": "MainWindow.xaml.cs",
+            "snippet": "Window",
+            "protectedSnippet": "T:System.Windows.Window",
+            "label": "T:System.Windows.Window",
+            "line": 16,
+            "column": 38
+          }
+        },
+        {
+          "incidentId": "e2910170-0aac-41e0-bafa-560a0bd85004",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return Binding.DoNothing;",
+              "protected": "T:System.Windows.Data.Binding"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return Binding.DoNothing;",
+            "protectedSnippet": "T:System.Windows.Data.Binding",
+            "label": "T:System.Windows.Data.Binding",
+            "line": 67,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "59bcdb02-2844-4f55-b5b0-dae25850961e",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return Binding.DoNothing;",
+              "protected": "F:System.Windows.Data.Binding.DoNothing"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return Binding.DoNothing;",
+            "protectedSnippet": "F:System.Windows.Data.Binding.DoNothing",
+            "label": "F:System.Windows.Data.Binding.DoNothing",
+            "line": 67,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "9ed0ac0b-3072-44a3-8f43-82dbdbb3e5bf",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 62,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "39e5a9e1-0704-47e6-9c64-18facf775914",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 62,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "8b0313fb-7a16-4f96-8966-f0915a20c3c6",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "F:System.Windows.Visibility.Collapsed"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "F:System.Windows.Visibility.Collapsed",
+            "label": "F:System.Windows.Visibility.Collapsed",
+            "line": 62,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "68a2d05b-edaf-4c1a-b7a8-8272bd64b895",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 62,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "58c9189c-57d3-4d28-9665-62598e601655",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 62,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "1f08698b-134d-46b0-938e-738936505c9a",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "F:System.Windows.Visibility.Visible"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "F:System.Windows.Visibility.Visible",
+            "label": "F:System.Windows.Visibility.Visible",
+            "line": 62,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "4e35768d-d873-45df-8687-c950a18b1e32",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "MarkupExtension",
+              "protected": "M:System.Windows.Markup.MarkupExtension.#ctor"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "MarkupExtension",
+            "protectedSnippet": "M:System.Windows.Markup.MarkupExtension.#ctor",
+            "label": "M:System.Windows.Markup.MarkupExtension.#ctor",
+            "line": 42,
+            "column": 45
+          }
+        },
+        {
+          "incidentId": "2200102e-1ba0-453c-b7b2-06d34382f82b",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "IValueConverter",
+              "protected": "T:System.Windows.Data.IValueConverter"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "IValueConverter",
+            "protectedSnippet": "T:System.Windows.Data.IValueConverter",
+            "label": "T:System.Windows.Data.IValueConverter",
+            "line": 42,
+            "column": 62
+          }
+        },
+        {
+          "incidentId": "ad05f04c-55d1-403e-86a7-ab9cd240999b",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "MarkupExtension",
+              "protected": "T:System.Windows.Markup.MarkupExtension"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "MarkupExtension",
+            "protectedSnippet": "T:System.Windows.Markup.MarkupExtension",
+            "label": "T:System.Windows.Markup.MarkupExtension",
+            "line": 42,
+            "column": 45
+          }
+        },
+        {
+          "incidentId": "492bda08-db39-4074-96fc-88f8c9a79536",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return Binding.DoNothing;",
+              "protected": "T:System.Windows.Data.Binding"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return Binding.DoNothing;",
+            "protectedSnippet": "T:System.Windows.Data.Binding",
+            "label": "T:System.Windows.Data.Binding",
+            "line": 38,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "2f97c900-de90-46d2-90db-8bc55eb2d8f5",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return Binding.DoNothing;",
+              "protected": "F:System.Windows.Data.Binding.DoNothing"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return Binding.DoNothing;",
+            "protectedSnippet": "F:System.Windows.Data.Binding.DoNothing",
+            "label": "F:System.Windows.Data.Binding.DoNothing",
+            "line": 38,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "4ffbd9c3-71e7-41c0-b046-6ebab7cdc2f2",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 33,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "d1cb754b-dab4-4de1-994a-30beb74b558f",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 33,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "deaf7565-8f42-4041-8533-becee97051bb",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "F:System.Windows.Visibility.Collapsed"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "F:System.Windows.Visibility.Collapsed",
+            "label": "F:System.Windows.Visibility.Collapsed",
+            "line": 33,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "d80b253c-8e84-43a3-8d6b-e7469c846efc",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 33,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "6c5876fb-ca3a-477c-ac63-4cd133cc22b6",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "T:System.Windows.Visibility"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "T:System.Windows.Visibility",
+            "label": "T:System.Windows.Visibility",
+            "line": 33,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "2c412d30-91ad-4ebe-97f7-faff1fbdf8cc",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+              "protected": "F:System.Windows.Visibility.Visible"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "return isVisible ? Visibility.Visible : Visibility.Collapsed;",
+            "protectedSnippet": "F:System.Windows.Visibility.Visible",
+            "label": "F:System.Windows.Visibility.Visible",
+            "line": 33,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "32fe20e1-fbf6-4c09-80e0-cc7473413fb7",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "MarkupExtension",
+              "protected": "M:System.Windows.Markup.MarkupExtension.#ctor"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "MarkupExtension",
+            "protectedSnippet": "M:System.Windows.Markup.MarkupExtension.#ctor",
+            "label": "M:System.Windows.Markup.MarkupExtension.#ctor",
+            "line": 8,
+            "column": 45
+          }
+        },
+        {
+          "incidentId": "234b3a4f-5e44-4500-8384-18fa4ca813c9",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "IValueConverter",
+              "protected": "T:System.Windows.Data.IValueConverter"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "IValueConverter",
+            "protectedSnippet": "T:System.Windows.Data.IValueConverter",
+            "label": "T:System.Windows.Data.IValueConverter",
+            "line": 8,
+            "column": 62
+          }
+        },
+        {
+          "incidentId": "6d058625-460b-4d6a-8186-114a972895d1",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "MarkupExtension",
+              "protected": "T:System.Windows.Markup.MarkupExtension"
+            },
+            "kind": "File",
+            "path": "Converters\\Converters.cs",
+            "snippet": "MarkupExtension",
+            "protectedSnippet": "T:System.Windows.Markup.MarkupExtension",
+            "label": "T:System.Windows.Markup.MarkupExtension",
+            "line": 8,
+            "column": 45
+          }
+        },
+        {
+          "incidentId": "d25e32a7-afca-4d84-84d9-ffa96032c33f",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "protected override void OnStartup(StartupEventArgs e)",
+              "protected": "T:System.Windows.StartupEventArgs"
+            },
+            "kind": "File",
+            "path": "App.xaml.cs",
+            "snippet": "protected override void OnStartup(StartupEventArgs e)",
+            "protectedSnippet": "T:System.Windows.StartupEventArgs",
+            "label": "T:System.Windows.StartupEventArgs",
+            "line": 8,
+            "column": 4
+          }
+        },
+        {
+          "incidentId": "ea6ea143-8f41-4457-a6c4-fb8ff1374291",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "base.OnStartup(e);",
+              "protected": "M:System.Windows.Application.OnStartup(System.Windows.StartupEventArgs)"
+            },
+            "kind": "File",
+            "path": "App.xaml.cs",
+            "snippet": "base.OnStartup(e);",
+            "protectedSnippet": "M:System.Windows.Application.OnStartup(System.Windows.StartupEventArgs)",
+            "label": "M:System.Windows.Application.OnStartup(System.Windows.StartupEventArgs)",
+            "line": 10,
+            "column": 8
+          }
+        },
+        {
+          "incidentId": "610e0ae1-460f-4ccc-8d31-836ae7707108",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Application",
+              "protected": "M:System.Windows.Application.#ctor"
+            },
+            "kind": "File",
+            "path": "App.xaml.cs",
+            "snippet": "Application",
+            "protectedSnippet": "M:System.Windows.Application.#ctor",
+            "label": "M:System.Windows.Application.#ctor",
+            "line": 6,
+            "column": 27
+          }
+        },
+        {
+          "incidentId": "1f5fb919-30b2-41e6-800d-f6c4d9e5ace4",
+          "ruleId": "Api.0001",
+          "description": "API is unavailable in net8.0 ",
+          "projectPath": "BasicDynamicEntity.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Application",
+              "protected": "T:System.Windows.Application"
+            },
+            "kind": "File",
+            "path": "App.xaml.cs",
+            "snippet": "Application",
+            "protectedSnippet": "T:System.Windows.Application",
+            "label": "T:System.Windows.Application",
+            "line": 6,
+            "column": 27
+          }
+        }
+      ],
+      "features": [
+        {
+          "featureId": "Wpf",
+          "incidents": [
+            "6d058625-460b-4d6a-8186-114a972895d1",
+            "234b3a4f-5e44-4500-8384-18fa4ca813c9",
+            "32fe20e1-fbf6-4c09-80e0-cc7473413fb7",
+            "2f97c900-de90-46d2-90db-8bc55eb2d8f5",
+            "492bda08-db39-4074-96fc-88f8c9a79536",
+            "ad05f04c-55d1-403e-86a7-ab9cd240999b",
+            "2200102e-1ba0-453c-b7b2-06d34382f82b",
+            "4e35768d-d873-45df-8687-c950a18b1e32",
+            "59bcdb02-2844-4f55-b5b0-dae25850961e",
+            "e2910170-0aac-41e0-bafa-560a0bd85004",
+            "6850ad13-c473-4906-8028-7514deed1ecb",
+            "2ff1d7dc-1b75-4163-b38d-b04f49fe4794",
+            "1daf1312-6ba4-42fc-8d69-c0340e0add9e"
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": {
+    "Project.0002": {
+      "id": "Project.0002",
+      "isFeature": false,
+      "description": "Project\u0027s target framework(s) needs to be changed to the new target framework that you selected for this upgrade.\n\nDuring upgrade target framework will be adjusted to corresponding platform when applicable. In some cases project would result in multiple target frameworks after the upgrade if it was using features that now have their own platforms in modern .NET frameworks (windows, iOS, Android etc).",
+      "label": "Project\u0027s target framework(s) needs to be changed",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Overview of porting from .NET Framework to .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265227",
+          "isCustom": false
+        },
+        {
+          "title": ".NET project SDKs",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265226",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0001": {
+      "id": "Api.0001",
+      "isFeature": false,
+      "description": "API is binary incompatible for selected .NET version: affects existing binaries, often requiring recompilation, because the API has changed in a way that prevents older binaries from loading or executing.",
+      "label": "Binary incompatible for selected .NET version",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Breaking changes in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0003": {
+      "id": "Api.0003",
+      "isFeature": false,
+      "description": "API has a behavioral change in selected .NET version: code and binaries may behave differently at runtime without needing recompilation, but the new behavior might be undesirable and require updates.",
+      "label": "Behavioral change in selected .NET version",
+      "severity": "Potential",
+      "effort": 1
+    },
+    "Wpf": {
+      "id": "Wpf",
+      "isFeature": false,
+      "description": "WPF APIs for building Windows desktop applications with XAML-based UI that are available in .NET on Windows. WPF provides rich desktop UI capabilities with data binding and styling. Enable Windows Desktop support: Option 1 (Recommended): Target net9.0-windows; Option 2: Add \u003CUseWindowsDesktop\u003Etrue\u003C/UseWindowsDesktop\u003E.",
+      "label": "WPF (Windows Presentation Foundation)",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "WPF on .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2342008",
+          "isCustom": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "editor.renderValidationDecorations": "off",
+  "problems.decorations.enabled": false,
+  "editor.semanticTokenColorCustomizations": {
+    "enabled": true,
+    "rules": {
+      "type": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold"
+      },
+      "type.defaultLibrary": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold"
+      },
+      "class": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold"
+      },
+      "class.defaultLibrary": {
+        "foreground": "#FFD700",
+        "fontStyle": "bold"
+      }
+    }
+  },
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "name": "C# declaration types",
+        "scope": [
+          "entity.name.type.class.csharp",
+          "entity.name.type.csharp",
+          "support.type.csharp",
+          "storage.type.cs"
+        ],
+        "settings": {
+          "foreground": "#FFD700",
+          "fontStyle": "bold"
+        }
+      }
+    ]
+  },
+  "[csharp]": {
+    "editor.lineNumbers": "off",
+    "editor.semanticHighlighting.enabled": true
+  }
+}

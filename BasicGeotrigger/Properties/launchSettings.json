@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "BasicGeotrigger (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "BasicGeotrigger (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

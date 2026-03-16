@@ -1,0 +1,62 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Field App Escort (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build Demo Solution",
+            "program": "${workspaceFolder}/FieldMobileApp/bin/Debug/net10.0-windows10.0.19041.0/win-x64/FieldMobileApp.exe",
+            "args": [
+                "--role",
+                "Escort",
+                "--mode",
+                "simulated",
+                "--device",
+                "Escort",
+                "--session",
+                "DEVSUMMIT-2026",
+                "--host",
+                "ws://127.0.0.1:8765/ws/",
+                "--autoconnect",
+                "--exit-on-disconnect"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Field App VIP-01 (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build Demo Solution",
+            "program": "${workspaceFolder}/FieldMobileApp/bin/Debug/net10.0-windows10.0.19041.0/win-x64/FieldMobileApp.exe",
+            "args": [
+                "--role",
+                "VIP",
+                "--mode",
+                "simulated",
+                "--device",
+                "VIP-01",
+                "--session",
+                "DEVSUMMIT-2026",
+                "--host",
+                "ws://127.0.0.1:8765/ws/",
+                "--autoconnect",
+                "--exit-on-disconnect"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Field Apps (Escort + VIP-01)",
+            "configurations": [
+                "Field App Escort (Debug)",
+                "Field App VIP-01 (Debug)"
+            ]
+        }
+    ]
+}

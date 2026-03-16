@@ -1,0 +1,66 @@
+{
+  "type": "uniqueValue",
+  "field1": "vehicletype",
+  "defaultSymbol": {
+    "type": "esriSMS",
+    "style": "esriSMSCircle",
+    "color": [
+      130,
+      130,
+      130,
+      255
+    ],
+    "size": 10,
+    "angle": 0,
+    "xoffset": 0,
+    "yoffset": 0,
+    "outline": {
+      "color": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "width": 0.5
+    }
+  },
+  "defaultLabel": "",
+  "uniqueValueInfos": [
+    {
+      "symbol": {
+        "angle": 0,
+        "xoffset": 0,
+        "yoffset": 0,
+        "type": "esriPMS",
+        "url": "https://static.arcgis.com/images/Symbols/Arrows/icon102.png",
+        "contentType": "image/png",
+        "width": 15,
+        "height": 15
+      },
+      "value": "Pickup",
+      "label": "Pickup"
+    },
+    {
+      "symbol": {
+        "angle": 0,
+        "xoffset": 0,
+        "yoffset": 0,
+        "type": "esriPMS",
+        "url": "http://static.arcgis.com/images/Symbols/Arrows/icon100.png",
+        "contentType": "image/png",
+        "width": 15,
+        "height": 15
+      },
+      "value": "Snow Plow",
+      "label": "Snow Plow"
+    }
+  ],
+  "fieldDelimiter": ",",
+  "visualVariables": [
+    {
+      "field": "heading",
+      "rotationType": "geographic",
+      "type": "rotationInfo"
+    }
+  ]
+}
